@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Black-Owned Business Discovery",
+  "version": "0.1.0",
+  "description": "Discover Black-owned alternatives while shopping",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": ["*://*.amazon.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["*://*.amazon.com/*"],
+      "js": ["content/content.js"],
+      "css": ["content/content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
