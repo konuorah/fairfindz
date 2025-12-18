@@ -122,6 +122,8 @@ function getProductCategory() {
 let cartActionsInitialized = false;
 let lastCartActionAt = 0;
 
+let modalInitialized = false;
+
 /**
  * Sets up listeners that detect “Add to Cart” / “Buy Now” clicks on Amazon.
  *
@@ -176,10 +178,149 @@ function detectCartActions() {
   document.addEventListener("click", handler, true);
 }
 
+/**
+ * Injects a modal overlay into the current page.
+ *
+ * Notes:
+ * - We inject into `document.body` so it sits above Amazon's content.
+ * - The modal is `position: fixed` and uses a very high z-index, so it’s always on top.
+ * - We do NOT implement close behavior yet (next user story).
+ */
+function createModal() {
+  if (modalInitialized) return;
+  modalInitialized = true;
+
+  // If the overlay already exists (e.g., due to SPA navigation), don't add another.
+  if (document.getElementById("bbd-modal-overlay")) return;
+
+  const overlay = document.createElement("div");
+  overlay.id = "bbd-modal-overlay";
+  overlay.className = "bbd-modal-overlay";
+
+  const container = document.createElement("div");
+  container.className = "bbd-modal-container";
+  container.setAttribute("role", "dialog");
+  container.setAttribute("aria-modal", "true");
+
+  const alternativeUrl =
+    "https://www.amazon.com/BLK-Bold-Keurig-Premium-Arabica/dp/B0B6GQNMHC/";
+
+  const category = getProductCategory();
+  const footerInfoText =
+    category !== "unknown"
+      ? `💡 Supporting Black-owned businesses in ${category}`
+      : "💡 Discover quality alternatives from Black-owned businesses";
+
+  // Placeholder content for now (we'll replace this with real alternative listings later).
+  container.innerHTML = `
+    <div class="bbd-modal-header">
+      <div class="bbd-modal-header-left">
+        <div class="bbd-modal-icon" aria-hidden="true">🎯</div>
+        <div class="bbd-modal-headline">Black-Owned Alternative Found!</div>
+      </div>
+
+      <button class="bbd-modal-close" type="button" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="bbd-modal-body">
+      <div class="bbd-product-card">
+        <img
+          class="bbd-product-image"
+          src="https://via.placeholder.com/120"
+          alt="Alternative product image"
+        />
+
+        <div class="bbd-product-info">
+          <div class="bbd-product-title">BLK &amp; Bold Premium Coffee K-Cups, 40 Count</div>
+          <div class="bbd-product-brand">By: BLK &amp; Bold</div>
+          <div class="bbd-product-price">$26.99</div>
+          <div class="bbd-product-rating">⭐⭐⭐⭐⭐ (2,847)</div>
+          <div class="bbd-product-badge">🏷️ Black-Owned Business</div>
+        </div>
+      </div>
+
+      <div class="bbd-cta">
+        <button class="bbd-cta-primary" type="button">Shop This Alternative</button>
+        <button class="bbd-cta-secondary" type="button">Maybe Later</button>
+      </div>
+
+      <div class="bbd-modal-info">${footerInfoText}</div>
+    </div>
+
+    <div class="bbd-modal-footer">
+      <button class="bbd-modal-footer-close" type="button">
+        No, I’m not interested in supporting small business today
+      </button>
+    </div>
+  `;
+
+  overlay.appendChild(container);
+
+  // Append at the end of <body> so it sits above the page.
+  // We avoid touching Amazon's existing DOM structure.
+  document.body.appendChild(overlay);
+
+  // Trigger entrance animation.
+  // We add the element in its initial hidden state, then on the next frame
+  // we add the class that transitions it to the visible state.
+  window.requestAnimationFrame(() => {
+    overlay.classList.add("bbd-modal-show");
+  });
+
+  const closeModal = () => {
+    const existingOverlay = document.getElementById("bbd-modal-overlay");
+    if (!existingOverlay) return;
+
+    // If we're already closing, do nothing.
+    if (existingOverlay.classList.contains("bbd-modal-hide")) return;
+
+    // Exit animation: remove the visible class and add the hide class
+    // (hide class uses a faster duration and ease-in).
+    existingOverlay.classList.add("bbd-modal-hide");
+    existingOverlay.classList.remove("bbd-modal-show");
+
+    const containerEl = existingOverlay.querySelector(".bbd-modal-container");
+    const onDone = () => {
+      existingOverlay.remove();
+      modalInitialized = false;
+    };
+
+    // Clean up after the container finishes its transition (most reliable signal).
+    if (containerEl) {
+      containerEl.addEventListener("transitionend", onDone, { once: true });
+    } else {
+      // Fallback: remove after exit duration.
+      window.setTimeout(onDone, 220);
+    }
+  };
+
+  const closeBtn = overlay.querySelector(".bbd-modal-close");
+  const footerCloseBtn = overlay.querySelector(".bbd-modal-footer-close");
+  closeBtn?.addEventListener("click", closeModal);
+  footerCloseBtn?.addEventListener("click", closeModal);
+
+  const primaryCtaBtn = overlay.querySelector(".bbd-cta-primary");
+  const secondaryCtaBtn = overlay.querySelector(".bbd-cta-secondary");
+
+  primaryCtaBtn?.addEventListener("click", () => {
+    window.open(alternativeUrl, "_blank");
+    closeModal();
+  });
+
+  secondaryCtaBtn?.addEventListener("click", closeModal);
+}
+
 function logProductPageStatus() {
   if (isProductPage(window.location.href, { detectCategory: true })) {
     console.log("✅ Product page detected!");
     detectCartActions();
+
+    // For testing: show the modal 1 second after page load.
+    // (Later we'll show it based on detecting alternatives, toolbar action, etc.)
+    window.setTimeout(() => {
+      // Double-check we're still on a product page at display time.
+      if (isProductPage()) createModal();
+    }, 1000);
   } else {
     console.log("❌ Not a product page");
   }
