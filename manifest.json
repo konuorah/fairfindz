@@ -5,6 +5,12 @@
   "description": "Discover Black-owned alternatives while shopping",
   "permissions": ["storage", "activeTab"],
   "host_permissions": ["*://*.amazon.com/*"],
+  "web_accessible_resources": [
+    {
+      "resources": ["data/businesses.json"],
+      "matches": ["*://*.amazon.com/*"]
+    }
+  ],
   "content_scripts": [
     {
       "matches": ["*://*.amazon.com/*"],

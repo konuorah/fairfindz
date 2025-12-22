@@ -119,6 +119,271 @@ function getProductCategory() {
   return "unknown";
 }
 
+function isValidAmazonProductUrl(urlString) {
+  try {
+    const url = new URL(urlString);
+    if (!/(^|\.)amazon\.com$/i.test(url.hostname)) return false;
+    return /^\/dp\/[A-Z0-9]{10}(?:[/?]|$)/i.test(url.pathname) ||
+      /^\/gp\/product\/[A-Z0-9]{10}(?:[/?]|$)/i.test(url.pathname) ||
+      /\/dp\/[A-Z0-9]{10}(?:[/?]|$)/i.test(url.pathname);
+  } catch {
+    return false;
+  }
+}
+
+function isValidAmazonImageUrl(urlString) {
+  try {
+    const url = new URL(urlString);
+    return /(^|\.)m\.media-amazon\.com$/i.test(url.hostname) && url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function validateBusinessesData(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    throw new Error("businesses.json must be an object with a 'products' array");
+  }
+
+  const products = data.products;
+  if (!Array.isArray(products)) {
+    throw new Error("businesses.json missing required 'products' array");
+  }
+
+  const requiredFields = [
+    "id",
+    "name",
+    "brand",
+    "category",
+    "price",
+    "rating",
+    "reviewCount",
+    "imageUrl",
+    "productUrl"
+  ];
+
+  const allowedCategories = new Set(["coffee", "candles"]);
+  const allowedAvailability = new Set(["in_stock", "out_of_stock"]);
+  const seenIds = new Set();
+
+  products.forEach((p, idx) => {
+    if (!p || typeof p !== "object" || Array.isArray(p)) {
+      throw new Error(`products[${idx}] must be an object`);
+    }
+
+    for (const field of requiredFields) {
+      if (p[field] === undefined || p[field] === null || p[field] === "") {
+        throw new Error(`products[${idx}] missing required field '${field}'`);
+      }
+    }
+
+    if (typeof p.id !== "string") throw new Error(`products[${idx}].id must be a string`);
+    if (seenIds.has(p.id)) throw new Error(`Duplicate product id '${p.id}'`);
+    seenIds.add(p.id);
+
+    if (typeof p.name !== "string") throw new Error(`products[${idx}].name must be a string`);
+    if (typeof p.brand !== "string") throw new Error(`products[${idx}].brand must be a string`);
+
+    if (typeof p.category !== "string" || !allowedCategories.has(p.category)) {
+      throw new Error(`products[${idx}].category must be 'coffee' or 'candles'`);
+    }
+
+    if (typeof p.price !== "string" || !/^\$\d+(?:\.\d{2})?$/.test(p.price)) {
+      throw new Error(`products[${idx}].price must be a string like '$26.99'`);
+    }
+
+    if (!Number.isInteger(p.rating) || p.rating < 1 || p.rating > 5) {
+      throw new Error(`products[${idx}].rating must be an integer 1-5`);
+    }
+
+    if (typeof p.reviewCount !== "number" || !Number.isFinite(p.reviewCount) || p.reviewCount < 30) {
+      throw new Error(`products[${idx}].reviewCount must be a number >= 30`);
+    }
+
+    if (p.availability !== undefined) {
+      if (typeof p.availability !== "string" || !allowedAvailability.has(p.availability)) {
+        throw new Error(`products[${idx}].availability must be 'in_stock' or 'out_of_stock' if provided`);
+      }
+    }
+
+    if (typeof p.imageUrl !== "string" || !isValidAmazonImageUrl(p.imageUrl)) {
+      throw new Error(`products[${idx}].imageUrl must be a valid Amazon image URL`);
+    }
+
+    if (typeof p.productUrl !== "string" || !isValidAmazonProductUrl(p.productUrl)) {
+      throw new Error(`products[${idx}].productUrl must be a valid Amazon product URL`);
+    }
+
+    if (p.description !== undefined && typeof p.description !== "string") {
+      throw new Error(`products[${idx}].description must be a string if provided`);
+    }
+
+    if (p.badges !== undefined) {
+      if (!Array.isArray(p.badges) || !p.badges.every((b) => typeof b === "string" && b.trim().length > 0)) {
+        throw new Error(`products[${idx}].badges must be an array of strings if provided`);
+      }
+    }
+
+    if (p.amazonKeywords !== undefined) {
+      if (!Array.isArray(p.amazonKeywords) || p.amazonKeywords.length < 3) {
+        throw new Error(`products[${idx}].amazonKeywords must be an array with at least 3 keywords`);
+      }
+      if (!p.amazonKeywords.every((kw) => typeof kw === "string" && kw.trim().length > 0)) {
+        throw new Error(`products[${idx}].amazonKeywords must only contain non-empty strings`);
+      }
+    }
+
+    if (p.amazonCategories !== undefined) {
+      if (!Array.isArray(p.amazonCategories) || !p.amazonCategories.every((c) => typeof c === "string" && c.trim().length > 0)) {
+        throw new Error(`products[${idx}].amazonCategories must be an array of strings if provided`);
+      }
+    }
+  });
+
+  return products;
+}
+
+async function loadBusinessesProducts() {
+  if (!chrome?.runtime?.getURL) {
+    throw new Error("chrome.runtime.getURL not available (content script context required)");
+  }
+
+  const url = chrome.runtime.getURL("data/businesses.json");
+  let res;
+  try {
+    res = await fetch(url);
+  } catch (err) {
+    throw new Error(
+      `Failed to fetch businesses.json. Ensure it is listed in manifest.json web_accessible_resources. URL: ${url}. Underlying error: ${err?.message || String(err)}`
+    );
+  }
+  if (!res.ok) {
+    throw new Error(`Failed to load businesses.json: ${res.status} ${res.statusText}`);
+  }
+
+  const data = await res.json();
+  return validateBusinessesData(data);
+}
+
+let productDatabasePromise = null;
+
+function loadProductDatabase() {
+  if (!productDatabasePromise) {
+    productDatabasePromise = loadBusinessesProducts();
+  }
+  return productDatabasePromise;
+}
+
+function normalizeText(s) {
+  return (s || "")
+    .toLowerCase()
+    .replace(/[\u2019']/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractAmazonProduct() {
+  const textFrom = (selector) => {
+    const el = document.querySelector(selector);
+    return el?.textContent ? el.textContent.trim() : "";
+  };
+
+  const title =
+    textFrom("#productTitle") ||
+    textFrom("h1#title") ||
+    textFrom("h1") ||
+    document.title.replace(/\s*:\s*Amazon\.com\s*$/i, "").trim();
+
+  const breadcrumbText =
+    textFrom("#wayfinding-breadcrumbs_feature_div") ||
+    textFrom("#wayfinding-breadcrumbs_container") ||
+    textFrom(".a-breadcrumb") ||
+    "";
+
+  const featureBullets = textFrom("#feature-bullets") || "";
+  const description = textFrom("#productDescription") || "";
+
+  const priceText =
+    textFrom("#corePriceDisplay_desktop_feature_div .a-price .a-offscreen") ||
+    textFrom("#corePrice_feature_div .a-price .a-offscreen") ||
+    textFrom("#priceblock_ourprice") ||
+    textFrom("#priceblock_dealprice") ||
+    "";
+
+  const category = getProductCategory();
+
+  const combinedText = normalizeText(`${title}\n${breadcrumbText}\n${featureBullets}\n${description}`);
+
+  return {
+    category,
+    title: title.trim(),
+    breadcrumbs: breadcrumbText.trim(),
+    features: featureBullets.trim(),
+    description: description.trim(),
+    priceText: priceText.trim(),
+    combinedText
+  };
+}
+
+function scoreProduct(product, amazonInfo) {
+  if (!product || !amazonInfo) return { score: 0, keywordMatches: 0, matchedKeywords: [] };
+
+  const categoryMatches = amazonInfo.category === "unknown" || product.category === amazonInfo.category;
+  if (!categoryMatches) return { score: 0, keywordMatches: 0, matchedKeywords: [] };
+
+  const haystack = amazonInfo.combinedText;
+  const keywords = Array.isArray(product.amazonKeywords) ? product.amazonKeywords : [];
+
+  const matched = [];
+  for (const kwRaw of keywords) {
+    const kw = normalizeText(kwRaw);
+    if (!kw) continue;
+    if (haystack.includes(kw)) matched.push(kwRaw);
+  }
+
+  const keywordMatches = matched.length;
+  let score = 0;
+
+  score += (product.category === amazonInfo.category ? 60 : 20);
+  score += keywordMatches * 12;
+
+  if (product.rating >= 5) score += 10;
+  else if (product.rating >= 4.5) score += 7;
+  else if (product.rating >= 4.2) score += 4;
+  else if (product.rating >= 4.0) score += 2;
+
+  if (product.reviewCount >= 5000) score += 10;
+  else if (product.reviewCount >= 1000) score += 7;
+  else if (product.reviewCount >= 300) score += 4;
+  else if (product.reviewCount >= 100) score += 2;
+
+  return { score, keywordMatches, matchedKeywords: matched };
+}
+
+function matchProducts(amazonInfo, products, { limit = 3 } = {}) {
+  const inStock = (products || []).filter((p) => p.availability !== "out_of_stock");
+
+  const categoryPool = amazonInfo.category === "unknown"
+    ? inStock
+    : inStock.filter((p) => p.category === amazonInfo.category);
+
+  const scored = categoryPool
+    .map((p) => {
+      const { score, keywordMatches, matchedKeywords } = scoreProduct(p, amazonInfo);
+      return { product: p, score, keywordMatches, matchedKeywords };
+    })
+    .filter((x) => x.score > 0)
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (b.keywordMatches !== a.keywordMatches) return b.keywordMatches - a.keywordMatches;
+      if (b.product.rating !== a.product.rating) return b.product.rating - a.product.rating;
+      return b.product.reviewCount - a.product.reviewCount;
+    });
+
+  const top = scored.slice(0, limit);
+  return { top, scored };
+}
+
 let cartActionsInitialized = false;
 let lastCartActionAt = 0;
 
@@ -186,7 +451,7 @@ function detectCartActions() {
  * - The modal is `position: fixed` and uses a very high z-index, so it’s always on top.
  * - We do NOT implement close behavior yet (next user story).
  */
-function createModal() {
+function createModal({ amazonInfo, matches } = {}) {
   if (modalInitialized) return;
   modalInitialized = true;
 
@@ -202,45 +467,65 @@ function createModal() {
   container.setAttribute("role", "dialog");
   container.setAttribute("aria-modal", "true");
 
-  const alternativeUrl =
-    "https://www.amazon.com/BLK-Bold-Keurig-Premium-Arabica/dp/B0B6GQNMHC/";
-
-  const category = getProductCategory();
+  const category = amazonInfo?.category || getProductCategory();
   const footerInfoText =
     category !== "unknown"
       ? `💡 Supporting Black-owned businesses in ${category}`
       : "💡 Discover quality alternatives from Black-owned businesses";
 
-  // Placeholder content for now (we'll replace this with real alternative listings later).
+  const items = Array.isArray(matches) ? matches : [];
+  const primary = items[0]?.product || null;
+  const primaryUrl = primary?.productUrl || "https://www.amazon.com/";
+
+  const productCardsHtml = items.length
+    ? items
+      .map(({ product }) => {
+        const badges = Array.isArray(product.badges) && product.badges.length
+          ? product.badges.map((b) => `<span class="bbd-product-badge">🏷️ ${b}</span>`).join(" ")
+          : "";
+
+        return `
+          <div class="bbd-product-card">
+            <img
+              class="bbd-product-image"
+              src="${product.imageUrl}"
+              alt="Alternative product image"
+            />
+            <div class="bbd-product-info">
+              <div class="bbd-product-title">${product.name}</div>
+              <div class="bbd-product-brand">By: ${product.brand}</div>
+              <div class="bbd-product-price">${product.price}</div>
+              <div class="bbd-product-rating">${"⭐".repeat(product.rating)} (${product.reviewCount.toLocaleString()})</div>
+              <div class="bbd-product-badges">${badges}</div>
+            </div>
+          </div>
+        `;
+      })
+      .join("")
+    : `
+        <div class="bbd-product-card">
+          <div class="bbd-product-info">
+            <div class="bbd-product-title">No Black-owned alternatives found</div>
+            <div class="bbd-product-brand">We’ll keep searching as we expand the database.</div>
+          </div>
+        </div>
+      `;
+
   container.innerHTML = `
     <div class="bbd-modal-header">
       <div class="bbd-modal-header-left">
         <div class="bbd-modal-icon" aria-hidden="true">🎯</div>
-        <div class="bbd-modal-headline">Black-Owned Alternative Found!</div>
+        <div class="bbd-modal-headline">${items.length ? "Black-Owned Alternative Found!" : "No Alternative Found"}</div>
       </div>
 
       <button class="bbd-modal-close" type="button" aria-label="Close">&times;</button>
     </div>
 
     <div class="bbd-modal-body">
-      <div class="bbd-product-card">
-        <img
-          class="bbd-product-image"
-          src="https://via.placeholder.com/120"
-          alt="Alternative product image"
-        />
-
-        <div class="bbd-product-info">
-          <div class="bbd-product-title">BLK &amp; Bold Premium Coffee K-Cups, 40 Count</div>
-          <div class="bbd-product-brand">By: BLK &amp; Bold</div>
-          <div class="bbd-product-price">$26.99</div>
-          <div class="bbd-product-rating">⭐⭐⭐⭐⭐ (2,847)</div>
-          <div class="bbd-product-badge">🏷️ Black-Owned Business</div>
-        </div>
-      </div>
+      ${productCardsHtml}
 
       <div class="bbd-cta">
-        <button class="bbd-cta-primary" type="button">Shop This Alternative</button>
+        <button class="bbd-cta-primary" type="button" ${items.length ? "" : "disabled"}>Shop This Alternative</button>
         <button class="bbd-cta-secondary" type="button">Maybe Later</button>
       </div>
 
@@ -303,24 +588,58 @@ function createModal() {
   const secondaryCtaBtn = overlay.querySelector(".bbd-cta-secondary");
 
   primaryCtaBtn?.addEventListener("click", () => {
-    window.open(alternativeUrl, "_blank");
+    if (!items.length) return;
+    window.open(primaryUrl, "_blank");
     closeModal();
   });
 
   secondaryCtaBtn?.addEventListener("click", closeModal);
 }
 
-function logProductPageStatus() {
+async function logProductPageStatus() {
   if (isProductPage(window.location.href, { detectCategory: true })) {
     console.log("✅ Product page detected!");
     detectCartActions();
 
-    // For testing: show the modal 1 second after page load.
-    // (Later we'll show it based on detecting alternatives, toolbar action, etc.)
-    window.setTimeout(() => {
-      // Double-check we're still on a product page at display time.
-      if (isProductPage()) createModal();
-    }, 1000);
+    try {
+      const products = await loadProductDatabase();
+      const activeProducts = products.filter((p) => p.availability !== "out_of_stock");
+      console.log(`✅ Loaded ${products.length} products (${activeProducts.length} in-stock, ${products.length - activeProducts.length} out-of-stock)`);
+
+      const amazonInfo = extractAmazonProduct();
+      console.log("🔎 Amazon product info:", {
+        category: amazonInfo.category,
+        title: amazonInfo.title,
+        priceText: amazonInfo.priceText
+      });
+
+      const { top, scored } = matchProducts(amazonInfo, products, { limit: 3 });
+      console.log(
+        "🏁 Match results:",
+        top.map((m) => ({
+          id: m.product.id,
+          name: m.product.name,
+          score: m.score,
+          keywordMatches: m.keywordMatches
+        }))
+      );
+
+      if (scored.length) {
+        console.log(
+          "📊 Top scored (debug):",
+          scored.slice(0, 10).map((m) => ({ id: m.product.id, score: m.score, keywordMatches: m.keywordMatches }))
+        );
+      }
+
+      window.setTimeout(() => {
+        if (!isProductPage()) return;
+        createModal({ amazonInfo, matches: top });
+      }, 1000);
+      return;
+    } catch (err) {
+      console.error("❌ Invalid businesses.json:", err);
+      return;
+    }
   } else {
     console.log("❌ Not a product page");
   }
