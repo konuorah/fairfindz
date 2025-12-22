@@ -67,7 +67,7 @@ function getProductCategory() {
   // Keyword lists (lowercase). Keep these small and easy to tweak.
   const keywordSets = {
     coffee: ["coffee", "espresso", "k-cup", "keurig", "beans"],
-    candles: ["candle", "scented", "soy candle", "wax"]
+    candles: ["candle", "candles", "scented", "soy candle", "soy", "fragrance"]
   };
 
   // Helper: safely grab visible text content from a selector.
@@ -88,15 +88,10 @@ function getProductCategory() {
     textFrom(".a-breadcrumb") ||
     "";
 
-  // 3) Description / feature bullets
-  // - #feature-bullets is very common and contains key product descriptors
-  // - #productDescription sometimes exists for a longer paragraph
-  const descriptionText =
-    textFrom("#feature-bullets") || textFrom("#productDescription") || "";
-
-  // Combine signals into one searchable blob.
-  // Lowercasing keeps keyword matching simple.
-  const haystack = `${titleText}\n${breadcrumbText}\n${descriptionText}`.toLowerCase();
+  // Combine ONLY high-signal category cues.
+  // Breadcrumbs are useful, but feature bullets/description can include unrelated content
+  // (recommendations, promos, etc.) that can cause false positives.
+  const haystack = `${titleText}\n${breadcrumbText}`.toLowerCase();
 
   // Score each category by counting how many keywords appear.
   const scoreCategory = (keywords) =>
@@ -312,7 +307,9 @@ function extractAmazonProduct() {
 
   const category = getProductCategory();
 
-  const combinedText = normalizeText(`${title}\n${breadcrumbText}\n${featureBullets}\n${description}`);
+  // IMPORTANT: exclude breadcrumbs from keyword matching to avoid generic breadcrumb text
+  // (e.g., "Home & Kitchen") causing irrelevant matches.
+  const combinedText = normalizeText(`${title}\n${featureBullets}\n${description}`);
 
   return {
     category,
@@ -343,6 +340,21 @@ function scoreProduct(product, amazonInfo) {
 
   const keywordMatches = matched.length;
   let score = 0;
+
+  // Generic terms like "coffee" or "candle" can appear in navigation, ads, or recommendations
+  // on unrelated pages. We require at least one *non-generic* keyword match to consider a
+  // product relevant.
+  const genericKeywordSet = new Set(["coffee", "candle", "candles"]);
+  const nonGenericKeywordMatches = matched.filter((kw) => !genericKeywordSet.has(normalizeText(kw))).length;
+
+  // Minimum relevance gate:
+  // - If we don't know the page category, we require stronger evidence (>= 2 keyword matches)
+  //   to avoid surfacing unrelated products (e.g., balloons matching candles).
+  // - If we do know the category, require at least 1 keyword match.
+  const minKeywordMatches = amazonInfo.category === "unknown" ? 2 : 1;
+  if (keywordMatches < minKeywordMatches || nonGenericKeywordMatches < 1) {
+    return { score: 0, keywordMatches, matchedKeywords: matched };
+  }
 
   score += (product.category === amazonInfo.category ? 60 : 20);
   score += keywordMatches * 12;
