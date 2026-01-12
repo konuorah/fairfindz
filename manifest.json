@@ -3,8 +3,14 @@
   "name": "Black-Owned Business Discovery",
   "version": "0.1.0",
   "description": "Discover Black-owned alternatives while shopping",
-  "permissions": ["storage", "activeTab"],
+  "permissions": ["storage", "activeTab", "tabs"],
   "host_permissions": ["*://*.amazon.com/*"],
+  "action": {
+    "default_title": "View Black-owned alternatives"
+  },
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
   "web_accessible_resources": [
     {
       "resources": ["data/businesses.json"],

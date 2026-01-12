@@ -262,6 +262,12 @@ async function loadBusinessesProducts() {
 
 let productDatabasePromise = null;
 
+let cachedAmazonInfo = null;
+let cachedMatches = null;
+let toastInitialized = false;
+let toastClosedByUser = false;
+let toastCountdownIntervalId = null;
+
 function loadProductDatabase() {
   if (!productDatabasePromise) {
     productDatabasePromise = loadBusinessesProducts();
@@ -275,6 +281,37 @@ function normalizeText(s) {
     .replace(/[\u2019']/g, "'")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function extractAmazonAsinFromUrl(url) {
+  if (!url) return null;
+  const s = String(url);
+
+  // Common Amazon patterns:
+  // - /dp/B012345678
+  // - /gp/product/B012345678
+  // - ?asin=B012345678
+  const dp = s.match(/\/dp\/([A-Z0-9]{10})(?:[/?]|$)/i);
+  if (dp?.[1]) return dp[1].toUpperCase();
+
+  const gp = s.match(/\/gp\/product\/([A-Z0-9]{10})(?:[/?]|$)/i);
+  if (gp?.[1]) return gp[1].toUpperCase();
+
+  const q = s.match(/[?&]asin=([A-Z0-9]{10})(?:&|$)/i);
+  if (q?.[1]) return q[1].toUpperCase();
+
+  return null;
+}
+
+function isCurrentAmazonProductInDatabase(products) {
+  const currentAsin = extractAmazonAsinFromUrl(window.location.href);
+  if (!currentAsin) return false;
+
+  for (const p of products || []) {
+    const asin = extractAmazonAsinFromUrl(p?.productUrl);
+    if (asin && asin === currentAsin) return true;
+  }
+  return false;
 }
 
 function extractAmazonProduct() {
@@ -396,6 +433,345 @@ function matchProducts(amazonInfo, products, { limit = 3 } = {}) {
   return { top, scored };
 }
 
+function sendBackgroundMessage(message) {
+  try {
+    chrome.runtime?.sendMessage?.(message);
+  } catch {
+    // Ignore; background/service worker may not be available in some contexts.
+  }
+}
+
+function escapeHtmlAttr(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function getImageFallbackDataUrl() {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="10" ry="10" fill="#edf2f7"/>
+      <path d="M30 82l18-20 14 16 10-12 18 22H30z" fill="#cbd5e0"/>
+      <circle cx="46" cy="44" r="7" fill="#cbd5e0"/>
+      <text x="60" y="104" font-family="system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="10" text-anchor="middle" fill="#718096">Image unavailable</text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+const resolvedImageUrlCache = new Map();
+
+function loadImageUrl(url) {
+  return new Promise((resolve, reject) => {
+    if (!url) return reject(new Error("Missing image URL"));
+    const img = new Image();
+    img.decoding = "async";
+    img.loading = "eager";
+    img.referrerPolicy = "strict-origin-when-cross-origin";
+    img.onload = () => resolve(url);
+    img.onerror = () => reject(new Error("Image failed to load"));
+    img.src = url;
+  });
+}
+
+function resolveMetaViaBackground(productUrl) {
+  return new Promise((resolve) => {
+    try {
+      chrome.runtime?.sendMessage?.(
+        { type: "FAIRFINDZ_RESOLVE_PRODUCT_META", productUrl },
+        (response) => {
+          if (chrome.runtime?.lastError) {
+            resolve({ rating: null, reviewCount: null, priceText: null });
+            return;
+          }
+
+          resolve({
+            rating: typeof response?.rating === "number" ? response.rating : null,
+            reviewCount: typeof response?.reviewCount === "number" ? response.reviewCount : null,
+            priceText: typeof response?.priceText === "string" ? response.priceText : null
+          });
+        }
+      );
+    } catch {
+      resolve({ rating: null, reviewCount: null, priceText: null });
+    }
+  });
+}
+
+function renderStarsHtml(rating) {
+  const safe = typeof rating === "number" && !Number.isNaN(rating) ? Math.max(0, Math.min(5, rating)) : 0;
+  const fullStars = Math.floor(safe);
+  const frac = safe - fullStars;
+  const hasHalf = frac >= 0.25 && frac < 0.75;
+  const effectiveFullStars = frac >= 0.75 ? fullStars + 1 : fullStars;
+
+  const stars = [];
+  for (let i = 0; i < 5; i += 1) {
+    if (i < effectiveFullStars) {
+      stars.push('<span class="bbd-star bbd-star-full">★</span>');
+    } else if (i === effectiveFullStars && hasHalf) {
+      stars.push('<span class="bbd-star bbd-star-half">★</span>');
+    } else {
+      stars.push('<span class="bbd-star bbd-star-empty">★</span>');
+    }
+  }
+
+  return `<span class="bbd-stars" aria-label="${safe.toFixed(1)} out of 5">${stars.join("")}</span>`;
+}
+
+function hydrateModalProductMeta(overlayEl) {
+  if (!overlayEl) return;
+
+  const urls = new Set(
+    Array.from(
+      overlayEl.querySelectorAll("[data-product-url]")
+    )
+      .map((el) => el.getAttribute("data-product-url") || "")
+      .filter(Boolean)
+  );
+
+  urls.forEach(async (productUrl) => {
+    const ratingEl = overlayEl.querySelector(`.bbd-product-rating[data-product-url="${CSS.escape(productUrl)}"]`);
+    const priceEl = overlayEl.querySelector(`.bbd-product-price[data-product-url="${CSS.escape(productUrl)}"]`);
+
+    const { rating, reviewCount, priceText } = await resolveMetaViaBackground(productUrl);
+
+    if (ratingEl) {
+      const fallbackRatingRaw = ratingEl.getAttribute("data-fallback-rating");
+      const fallbackReviewRaw = ratingEl.getAttribute("data-fallback-review-count");
+      const fallbackRating = fallbackRatingRaw != null ? Number(fallbackRatingRaw) : null;
+      const fallbackReviewCount = fallbackReviewRaw != null ? Number(fallbackReviewRaw) : null;
+
+      const finalRating = typeof rating === "number" ? rating : (Number.isFinite(fallbackRating) ? fallbackRating : null);
+      const finalReviewCount = typeof reviewCount === "number" ? reviewCount : (Number.isFinite(fallbackReviewCount) ? fallbackReviewCount : null);
+
+      if (typeof finalRating === "number" && typeof finalReviewCount === "number") {
+        ratingEl.innerHTML = `${renderStarsHtml(finalRating)} <span class="bbd-review-count">(${finalReviewCount.toLocaleString()})</span>`;
+      } else {
+        ratingEl.textContent = "";
+      }
+    }
+
+    if (priceEl) {
+      const fallbackPrice = priceEl.getAttribute("data-fallback-price") || "";
+      const finalPrice = typeof priceText === "string" && priceText.trim() ? priceText.trim() : (fallbackPrice.trim() ? fallbackPrice.trim() : "");
+      priceEl.textContent = finalPrice;
+    }
+  });
+}
+
+async function resolveAmazonOgImage(productUrl) {
+  if (!productUrl) return null;
+  if (resolvedImageUrlCache.has(productUrl)) return resolvedImageUrlCache.get(productUrl);
+
+  try {
+    const res = await fetch(productUrl, {
+      method: "GET",
+      credentials: "include",
+      redirect: "follow",
+      headers: {
+        Accept: "text/html,application/xhtml+xml"
+      }
+    });
+    if (!res.ok) {
+      resolvedImageUrlCache.set(productUrl, null);
+      return null;
+    }
+
+    const html = await res.text();
+
+    // Prefer OpenGraph image (via DOM parsing; regex is too brittle).
+    try {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const metaSelectors = [
+        'meta[property="og:image:secure_url"]',
+        'meta[property="og:image"]',
+        'meta[name="og:image"]',
+        'meta[name="twitter:image"]',
+        'meta[property="twitter:image"]'
+      ];
+
+      for (const sel of metaSelectors) {
+        const content = doc.querySelector(sel)?.getAttribute("content");
+        if (content) {
+          resolvedImageUrlCache.set(productUrl, content);
+          return content;
+        }
+      }
+    } catch {
+      // Fall back to pattern matching below.
+    }
+
+    // Fallback: look for image URLs embedded in JSON blobs.
+    const patterns = [
+      /"hiRes"\s*:\s*"(https?:\\\/\\\/[^\"]+)"/i,
+      /"large"\s*:\s*"(https?:\\\/\\\/[^\"]+)"/i,
+      /"mainUrl"\s*:\s*"(https?:\\\/\\\/[^\"]+)"/i
+    ];
+
+    for (const re of patterns) {
+      const m = html.match(re);
+      const raw = m?.[1];
+      if (raw) {
+        const url = raw.replace(/\\\//g, "/");
+        resolvedImageUrlCache.set(productUrl, url);
+        return url;
+      }
+    }
+
+    resolvedImageUrlCache.set(productUrl, null);
+    return null;
+  } catch {
+    resolvedImageUrlCache.set(productUrl, null);
+    return null;
+  }
+}
+
+function resolveImageViaBackground(productUrl) {
+  return new Promise((resolve) => {
+    try {
+      chrome.runtime?.sendMessage?.(
+        { type: "FAIRFINDZ_RESOLVE_PRODUCT_IMAGE", productUrl },
+        (response) => {
+          if (chrome.runtime?.lastError) {
+            console.log("🖼️ FairFindz background resolver lastError:", chrome.runtime.lastError.message);
+            resolve(null);
+            return;
+          }
+
+          const resolved = response?.imageUrl || null;
+          if (!resolved) {
+            console.log("🖼️ FairFindz background resolver returned null", { productUrl, response });
+          }
+          resolve(resolved);
+        }
+      );
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+async function hydrateModalProductImages(overlayEl) {
+  if (!overlayEl) return;
+
+  const imgs = Array.from(overlayEl.querySelectorAll("img.bbd-product-image"));
+  await Promise.all(
+    imgs.map(async (imgEl) => {
+      const primarySrc = imgEl.getAttribute("data-primary-src") || "";
+      const productUrl = imgEl.getAttribute("data-product-url") || "";
+
+      if (primarySrc || productUrl) {
+        console.log("🖼️ FairFindz image hydrate:", { primarySrc, productUrl });
+      }
+
+      // First try the DB-provided image URL (fast path if valid).
+      try {
+        await loadImageUrl(primarySrc);
+        imgEl.src = primarySrc;
+        console.log("🖼️ FairFindz image loaded from DB imageUrl");
+        return;
+      } catch {
+        // continue
+      }
+
+      // Fallback: fetch the product page and use og:image.
+      const resolvedFromBg = await resolveImageViaBackground(productUrl);
+      if (resolvedFromBg) console.log("🖼️ FairFindz resolved image via background:", resolvedFromBg);
+
+      const resolved = resolvedFromBg || (await resolveAmazonOgImage(productUrl));
+      if (!resolvedFromBg && resolved) console.log("🖼️ FairFindz resolved og:image:", resolved);
+      try {
+        await loadImageUrl(resolved);
+        imgEl.src = resolved;
+        console.log("🖼️ FairFindz image loaded from productUrl resolution");
+      } catch {
+        // leave placeholder
+        console.log("🖼️ FairFindz image failed to load; leaving placeholder");
+      }
+    })
+  );
+}
+
+function closeToast() {
+  const existing = document.getElementById("bbd-toast");
+  if (existing) existing.remove();
+  toastInitialized = false;
+  if (toastCountdownIntervalId) {
+    window.clearInterval(toastCountdownIntervalId);
+    toastCountdownIntervalId = null;
+  }
+}
+
+function createToast({ onOpenFullModal } = {}) {
+  if (toastInitialized) return;
+  toastInitialized = true;
+
+  // If a toast already exists (SPA navigation), reuse the guard.
+  if (document.getElementById("bbd-toast")) return;
+
+  const toast = document.createElement("div");
+  toast.id = "bbd-toast";
+  toast.className = "bbd-toast";
+
+  toast.innerHTML = `
+    <div class="bbd-toast-header">
+      <div class="bbd-toast-header-left">
+        <div class="bbd-toast-icon" aria-hidden="true">🎯</div>
+        <div class="bbd-toast-title">FairFindz</div>
+      </div>
+      <button class="bbd-toast-close" type="button" aria-label="Close">&times;</button>
+    </div>
+    <div class="bbd-toast-body">
+      <button class="bbd-toast-primary" type="button">Alternative Found</button>
+      <div class="bbd-toast-countdown" aria-live="polite">05</div>
+    </div>
+  `;
+
+  document.body.appendChild(toast);
+
+  const closeBtn = toast.querySelector(".bbd-toast-close");
+  const primaryBtn = toast.querySelector(".bbd-toast-primary");
+  const countdownEl = toast.querySelector(".bbd-toast-countdown");
+
+  const stopFlashing = () => sendBackgroundMessage({ type: "FAIRFINDZ_STOP_FLASHING" });
+  const startFlashing = () => sendBackgroundMessage({ type: "FAIRFINDZ_START_FLASHING" });
+
+  const closeByUser = () => {
+    toastClosedByUser = true;
+    closeToast();
+    // If user closes the toast manually, we still want the icon to indicate availability.
+    startFlashing();
+  };
+
+  closeBtn?.addEventListener("click", closeByUser);
+
+  primaryBtn?.addEventListener("click", () => {
+    stopFlashing();
+    closeToast();
+    onOpenFullModal?.();
+  });
+
+  const formatSeconds = (n) => String(Math.max(0, n)).padStart(2, "0");
+
+  // Countdown: 5 seconds, then dismiss and start flashing badge dot.
+  let remaining = 5;
+  toastCountdownIntervalId = window.setInterval(() => {
+    remaining -= 1;
+    if (countdownEl) countdownEl.textContent = formatSeconds(Math.max(remaining, 0));
+
+    if (remaining <= 0) {
+      window.clearInterval(toastCountdownIntervalId);
+      toastCountdownIntervalId = null;
+      closeToast();
+      if (!toastClosedByUser) startFlashing();
+    }
+  }, 1000);
+}
+
 let cartActionsInitialized = false;
 let lastCartActionAt = 0;
 
@@ -486,12 +862,13 @@ function createModal({ amazonInfo, matches } = {}) {
       : "💡 Discover quality alternatives from Black-owned businesses";
 
   const items = Array.isArray(matches) ? matches : [];
-  const primary = items[0]?.product || null;
-  const primaryUrl = primary?.productUrl || "https://www.amazon.com/";
 
   const productCardsHtml = items.length
     ? items
       .map(({ product }) => {
+        const imageSrc = escapeHtmlAttr(product.imageUrl || "");
+        const fallbackSrc = escapeHtmlAttr(getImageFallbackDataUrl());
+        const productUrlAttr = escapeHtmlAttr(product.productUrl || "");
         const badges = Array.isArray(product.badges) && product.badges.length
           ? product.badges.map((b) => `<span class="bbd-product-badge">🏷️ ${b}</span>`).join(" ")
           : "";
@@ -500,15 +877,28 @@ function createModal({ amazonInfo, matches } = {}) {
           <div class="bbd-product-card">
             <img
               class="bbd-product-image"
-              src="${product.imageUrl}"
+              src="${fallbackSrc}"
               alt="Alternative product image"
+              data-primary-src="${imageSrc}"
+              data-product-url="${productUrlAttr}"
+              loading="lazy"
+              decoding="async"
+              referrerpolicy="strict-origin-when-cross-origin"
             />
             <div class="bbd-product-info">
               <div class="bbd-product-title">${product.name}</div>
               <div class="bbd-product-brand">By: ${product.brand}</div>
-              <div class="bbd-product-price">${product.price}</div>
-              <div class="bbd-product-rating">${"⭐".repeat(product.rating)} (${product.reviewCount.toLocaleString()})</div>
+              <div class="bbd-product-price" data-product-url="${productUrlAttr}" data-fallback-price="${escapeHtmlAttr(product.price || "")}">Loading...</div>
+              <div class="bbd-product-rating" data-product-url="${productUrlAttr}" data-fallback-rating="${escapeHtmlAttr(String(product.rating ?? ""))}" data-fallback-review-count="${escapeHtmlAttr(String(product.reviewCount ?? ""))}">Loading...</div>
               <div class="bbd-product-badges">${badges}</div>
+
+              <button
+                class="bbd-product-cta-button"
+                type="button"
+                data-product-url="${productUrlAttr}"
+              >
+                Shop This Alternative →
+              </button>
             </div>
           </div>
         `;
@@ -536,11 +926,6 @@ function createModal({ amazonInfo, matches } = {}) {
     <div class="bbd-modal-body">
       ${productCardsHtml}
 
-      <div class="bbd-cta">
-        <button class="bbd-cta-primary" type="button" ${items.length ? "" : "disabled"}>Shop This Alternative</button>
-        <button class="bbd-cta-secondary" type="button">Maybe Later</button>
-      </div>
-
       <div class="bbd-modal-info">${footerInfoText}</div>
     </div>
 
@@ -556,6 +941,9 @@ function createModal({ amazonInfo, matches } = {}) {
   // Append at the end of <body> so it sits above the page.
   // We avoid touching Amazon's existing DOM structure.
   document.body.appendChild(overlay);
+
+  hydrateModalProductImages(overlay);
+  hydrateModalProductMeta(overlay);
 
   // Trigger entrance animation.
   // We add the element in its initial hidden state, then on the next frame
@@ -592,20 +980,27 @@ function createModal({ amazonInfo, matches } = {}) {
   };
 
   const closeBtn = overlay.querySelector(".bbd-modal-close");
-  const footerCloseBtn = overlay.querySelector(".bbd-modal-footer-close");
   closeBtn?.addEventListener("click", closeModal);
-  footerCloseBtn?.addEventListener("click", closeModal);
 
-  const primaryCtaBtn = overlay.querySelector(".bbd-cta-primary");
-  const secondaryCtaBtn = overlay.querySelector(".bbd-cta-secondary");
+  const productCtaButtons = overlay.querySelectorAll(".bbd-product-cta-button");
+  productCtaButtons.forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const url = this.getAttribute("data-product-url");
 
-  primaryCtaBtn?.addEventListener("click", () => {
-    if (!items.length) return;
-    window.open(primaryUrl, "_blank");
-    closeModal();
+      if (!url || !isValidAmazonProductUrl(url)) {
+        console.error("❌ Invalid product URL:", url);
+        return;
+      }
+
+      this.textContent = "Opening...";
+      this.disabled = true;
+
+      window.open(url, "_blank", "noopener,noreferrer");
+      setTimeout(() => {
+        closeModal();
+      }, 500);
+    });
   });
-
-  secondaryCtaBtn?.addEventListener("click", closeModal);
 }
 
 async function logProductPageStatus() {
@@ -618,7 +1013,17 @@ async function logProductPageStatus() {
       const activeProducts = products.filter((p) => p.availability !== "out_of_stock");
       console.log(`✅ Loaded ${products.length} products (${activeProducts.length} in-stock, ${products.length - activeProducts.length} out-of-stock)`);
 
+      // If the user is already on a product that exists in our database,
+      // do not surface alternatives.
+      if (isCurrentAmazonProductInDatabase(products)) {
+        sendBackgroundMessage({ type: "FAIRFINDZ_STOP_FLASHING" });
+        sendBackgroundMessage({ type: "FAIRFINDZ_CLEAR_BADGE" });
+        closeToast();
+        return;
+      }
+
       const amazonInfo = extractAmazonProduct();
+      cachedAmazonInfo = amazonInfo;
       console.log("🔎 Amazon product info:", {
         category: amazonInfo.category,
         title: amazonInfo.title,
@@ -626,6 +1031,7 @@ async function logProductPageStatus() {
       });
 
       const { top, scored } = matchProducts(amazonInfo, products, { limit: 3 });
+      cachedMatches = top;
       console.log(
         "🏁 Match results:",
         top.map((m) => ({
@@ -643,10 +1049,15 @@ async function logProductPageStatus() {
         );
       }
 
+      // UX: show a small toast 2 seconds after load if we found alternatives.
+      // The toast auto-dismisses after 5 seconds and then the toolbar icon flashes.
       window.setTimeout(() => {
         if (!isProductPage()) return;
-        createModal({ amazonInfo, matches: top });
-      }, 1000);
+        if (!Array.isArray(top) || top.length === 0) return;
+        createToast({
+          onOpenFullModal: () => createModal({ amazonInfo: cachedAmazonInfo, matches: cachedMatches || [] })
+        });
+      }, 2000);
       return;
     } catch (err) {
       console.error("❌ Invalid businesses.json:", err);
@@ -654,8 +1065,53 @@ async function logProductPageStatus() {
     }
   } else {
     console.log("❌ Not a product page");
+    // Clear badge state on non-product pages.
+    sendBackgroundMessage({ type: "FAIRFINDZ_CLEAR_BADGE" });
   }
 }
+
+chrome.runtime?.onMessage?.addListener((message) => {
+  if (!message || typeof message !== "object") return;
+  if (message.type !== "FAIRFINDZ_SHOW_MODAL") return;
+
+  // Non-product pages: do nothing (silent) per UX requirements.
+  if (!isProductPage()) return;
+
+  // Stop any flashing indicator when the user opens the modal.
+  sendBackgroundMessage({ type: "FAIRFINDZ_STOP_FLASHING" });
+
+  // If we already computed matches for this page, reuse them.
+  if (cachedAmazonInfo && Array.isArray(cachedMatches)) {
+    closeToast();
+    createModal({ amazonInfo: cachedAmazonInfo, matches: cachedMatches });
+    return;
+  }
+
+  // Fallback: compute matches on demand.
+  (async () => {
+    try {
+      const products = await loadProductDatabase();
+
+      // If the user is already on a product that exists in our database,
+      // do not surface alternatives (even via icon click).
+      if (isCurrentAmazonProductInDatabase(products)) {
+        sendBackgroundMessage({ type: "FAIRFINDZ_STOP_FLASHING" });
+        sendBackgroundMessage({ type: "FAIRFINDZ_CLEAR_BADGE" });
+        closeToast();
+        return;
+      }
+
+      const amazonInfo = extractAmazonProduct();
+      cachedAmazonInfo = amazonInfo;
+      const { top } = matchProducts(amazonInfo, products, { limit: 3 });
+      cachedMatches = top;
+      closeToast();
+      createModal({ amazonInfo, matches: top });
+    } catch (err) {
+      console.error("❌ Failed to open modal:", err);
+    }
+  })();
+});
 
 // Run once when the page loads.
 // Content scripts are usually injected after navigation, but DOM readiness can vary.
