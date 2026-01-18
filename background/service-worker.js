@@ -73,24 +73,6 @@ function extractImageUrlFromHtml(html) {
     return null;
   }
 
-  // Meta tag extraction where attribute order can vary.
-  // Example: <meta content="..." property="og:image" />
-  const metaNames = ["og:image:secure_url", "og:image", "twitter:image"];
-  for (const name of metaNames) {
-    const re1 = new RegExp(
-      `<meta[^>]+(?:property|name)=["']${name}["'][^>]+content=["']([^"']+)["'][^>]*>`,
-      "i"
-    );
-    const re2 = new RegExp(
-      `<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${name}["'][^>]*>`,
-      "i"
-    );
-    const m1 = html.match(re1);
-    if (m1?.[1]) return m1[1];
-    const m2 = html.match(re2);
-    if (m2?.[1]) return m2[1];
-  }
-
   const patterns = [
     // Amazon product pages often include a dynamic image map.
     // Example: data-a-dynamic-image='{"https://...jpg":[500,500],...}'
@@ -125,7 +107,31 @@ function extractImageUrlFromHtml(html) {
         .replace(/&#34;/g, '"')
         .replace(/&amp;/g, "&");
 
-      // Find the first https URL inside the JSON map.
+      // Prefer the largest image in the map if we can parse it.
+      // Map shape: { "https://...jpg": [500, 500], ... }
+      try {
+        const parsed = JSON.parse(decoded);
+        if (parsed && typeof parsed === "object") {
+          let bestUrl = null;
+          let bestArea = -1;
+          for (const [u, dims] of Object.entries(parsed)) {
+            if (typeof u !== "string") continue;
+            const url = u.includes("\\/") ? u.replace(/\\\//g, "/") : u;
+            const w = Array.isArray(dims) ? Number(dims[0]) : NaN;
+            const h = Array.isArray(dims) ? Number(dims[1]) : NaN;
+            const area = Number.isFinite(w) && Number.isFinite(h) ? w * h : 0;
+            if (area > bestArea) {
+              bestArea = area;
+              bestUrl = url;
+            }
+          }
+          if (bestUrl) return bestUrl;
+        }
+      } catch {
+        // Ignore JSON parsing errors.
+      }
+
+      // Fallback: find the first https URL inside the JSON map.
       const urlMatchEscaped = decoded.match(/https?:\\\/\\\/[^\"\\s]+/i);
       if (urlMatchEscaped?.[0]) return urlMatchEscaped[0].replace(/\\\//g, "/");
 
@@ -141,6 +147,26 @@ function extractImageUrlFromHtml(html) {
   // Last resort: pick the first Amazon CDN product image-like URL.
   const cdn = html.match(/https?:\/\/m\.media-amazon\.com\/images\/I\/[^\"'\s]+\.(?:jpg|jpeg|png|webp)/i);
   if (cdn?.[0]) return cdn[0];
+
+  // Meta tag extraction where attribute order can vary.
+  // Example: <meta content="..." property="og:image" />
+  // We do this late because og:image can sometimes point to a brand tile/logo
+  // rather than the actual main product image.
+  const metaNames = ["og:image:secure_url", "og:image", "twitter:image"];
+  for (const name of metaNames) {
+    const re1 = new RegExp(
+      `<meta[^>]+(?:property|name)=["']${name}["'][^>]+content=["']([^"']+)["'][^>]*>`,
+      "i"
+    );
+    const re2 = new RegExp(
+      `<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${name}["'][^>]*>`,
+      "i"
+    );
+    const m1 = html.match(re1);
+    if (m1?.[1]) return m1[1];
+    const m2 = html.match(re2);
+    if (m2?.[1]) return m2[1];
+  }
 
   return null;
 }

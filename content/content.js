@@ -150,14 +150,11 @@ function validateBusinessesData(data) {
     "name",
     "brand",
     "category",
-    "price",
-    "rating",
-    "reviewCount",
-    "imageUrl",
     "productUrl"
   ];
 
-  const allowedCategories = new Set(["coffee", "candles"]);
+  // These fields are used as fallbacks. Live values can be hydrated from Amazon.
+  const optionalFields = ["price", "rating", "reviewCount", "imageUrl"];
   const allowedAvailability = new Set(["in_stock", "out_of_stock"]);
   const seenIds = new Set();
 
@@ -172,6 +169,12 @@ function validateBusinessesData(data) {
       }
     }
 
+    for (const field of optionalFields) {
+      if (p[field] === undefined || p[field] === null) {
+        p[field] = field === "rating" || field === "reviewCount" ? 0 : "";
+      }
+    }
+
     if (typeof p.id !== "string") throw new Error(`products[${idx}].id must be a string`);
     if (seenIds.has(p.id)) throw new Error(`Duplicate product id '${p.id}'`);
     seenIds.add(p.id);
@@ -179,20 +182,26 @@ function validateBusinessesData(data) {
     if (typeof p.name !== "string") throw new Error(`products[${idx}].name must be a string`);
     if (typeof p.brand !== "string") throw new Error(`products[${idx}].brand must be a string`);
 
-    if (typeof p.category !== "string" || !allowedCategories.has(p.category)) {
-      throw new Error(`products[${idx}].category must be 'coffee' or 'candles'`);
+    if (typeof p.category !== "string" || !p.category.trim()) {
+      throw new Error(`products[${idx}].category must be a non-empty string`);
     }
 
-    if (typeof p.price !== "string" || !/^\$\d+(?:\.\d{2})?$/.test(p.price)) {
-      throw new Error(`products[${idx}].price must be a string like '$26.99'`);
+    if (p.price !== "") {
+      if (typeof p.price !== "string" || !/^\$\d+(?:\.\d{2})?$/.test(p.price)) {
+        throw new Error(`products[${idx}].price must be empty or a string like '$26.99'`);
+      }
     }
 
-    if (!Number.isInteger(p.rating) || p.rating < 1 || p.rating > 5) {
-      throw new Error(`products[${idx}].rating must be an integer 1-5`);
+    if (p.rating !== 0) {
+      if (typeof p.rating !== "number" || !Number.isFinite(p.rating) || p.rating < 0 || p.rating > 5) {
+        throw new Error(`products[${idx}].rating must be 0 or a number between 0 and 5`);
+      }
     }
 
-    if (typeof p.reviewCount !== "number" || !Number.isFinite(p.reviewCount) || p.reviewCount < 30) {
-      throw new Error(`products[${idx}].reviewCount must be a number >= 30`);
+    if (p.reviewCount !== 0) {
+      if (typeof p.reviewCount !== "number" || !Number.isFinite(p.reviewCount) || p.reviewCount < 0) {
+        throw new Error(`products[${idx}].reviewCount must be 0 or a non-negative number`);
+      }
     }
 
     if (p.availability !== undefined) {
@@ -201,8 +210,10 @@ function validateBusinessesData(data) {
       }
     }
 
-    if (typeof p.imageUrl !== "string" || !isValidAmazonImageUrl(p.imageUrl)) {
-      throw new Error(`products[${idx}].imageUrl must be a valid Amazon image URL`);
+    if (p.imageUrl !== "") {
+      if (typeof p.imageUrl !== "string" || !isValidAmazonImageUrl(p.imageUrl)) {
+        throw new Error(`products[${idx}].imageUrl must be empty or a valid Amazon image URL`);
+      }
     }
 
     if (typeof p.productUrl !== "string" || !isValidAmazonProductUrl(p.productUrl)) {
@@ -220,8 +231,8 @@ function validateBusinessesData(data) {
     }
 
     if (p.amazonKeywords !== undefined) {
-      if (!Array.isArray(p.amazonKeywords) || p.amazonKeywords.length < 3) {
-        throw new Error(`products[${idx}].amazonKeywords must be an array with at least 3 keywords`);
+      if (!Array.isArray(p.amazonKeywords)) {
+        throw new Error(`products[${idx}].amazonKeywords must be an array`);
       }
       if (!p.amazonKeywords.every((kw) => typeof kw === "string" && kw.trim().length > 0)) {
         throw new Error(`products[${idx}].amazonKeywords must only contain non-empty strings`);
@@ -264,9 +275,32 @@ let productDatabasePromise = null;
 
 let cachedAmazonInfo = null;
 let cachedMatches = null;
+let lastObservedUrl = null;
+let cachedUrl = null;
+let cachedAsin = null;
 let toastInitialized = false;
 let toastClosedByUser = false;
 let toastCountdownIntervalId = null;
+
+function resetRecommendationStateForNavigation() {
+  cachedAmazonInfo = null;
+  cachedMatches = null;
+  cachedUrl = null;
+  cachedAsin = null;
+  toastInitialized = false;
+  toastClosedByUser = false;
+  closeToast();
+  // If we navigated away, clear any badge state until we recompute matches.
+  sendBackgroundMessage({ type: "FAIRFINDZ_CLEAR_BADGE" });
+}
+
+function onPossibleUrlChange() {
+  const href = window.location.href;
+  if (href === lastObservedUrl) return;
+  lastObservedUrl = href;
+  resetRecommendationStateForNavigation();
+  logProductPageStatus();
+}
 
 function loadProductDatabase() {
   if (!productDatabasePromise) {
@@ -362,14 +396,55 @@ function extractAmazonProduct() {
 function scoreProduct(product, amazonInfo) {
   if (!product || !amazonInfo) return { score: 0, keywordMatches: 0, matchedKeywords: [] };
 
-  const categoryMatches = amazonInfo.category === "unknown" || product.category === amazonInfo.category;
-  if (!categoryMatches) return { score: 0, keywordMatches: 0, matchedKeywords: [] };
-
   const haystack = amazonInfo.combinedText;
+
   const keywords = Array.isArray(product.amazonKeywords) ? product.amazonKeywords : [];
+  const fallbackKeywords = [];
+  if (!keywords.length) {
+    // Only use name + brand for fallback keywords.
+    // Category strings in the DB can be generic and cause false positives (e.g., "home", "grocery").
+    const raw = `${product.name || ""} ${product.brand || ""}`;
+    const stopwords = new Set([
+      "with",
+      "from",
+      "that",
+      "this",
+      "your",
+      "their",
+      "amazon",
+      "com",
+      "pack",
+      "count",
+      "size",
+      "ounce",
+      "ounces",
+      "pound",
+      "pounds",
+      "grams",
+      "fresh",
+      "medium",
+      "large",
+      "small",
+      "black",
+      "owned"
+    ]);
+    raw
+      .split(/[^a-z0-9]+/i)
+      .map((t) => t.trim())
+      .filter(Boolean)
+      .forEach((t) => {
+        // Avoid noisy tokens.
+        if (t.length < 5) return;
+        const lower = t.toLowerCase();
+        if (stopwords.has(lower)) return;
+        fallbackKeywords.push(t);
+      });
+  }
+
+  const effectiveKeywords = keywords.length ? keywords : Array.from(new Set(fallbackKeywords));
 
   const matched = [];
-  for (const kwRaw of keywords) {
+  for (const kwRaw of effectiveKeywords) {
     const kw = normalizeText(kwRaw);
     if (!kw) continue;
     if (haystack.includes(kw)) matched.push(kwRaw);
@@ -377,6 +452,17 @@ function scoreProduct(product, amazonInfo) {
 
   const keywordMatches = matched.length;
   let score = 0;
+
+  const brandText = normalizeText(product.brand || "");
+  const brandMatches = brandText && haystack.includes(brandText);
+
+  const productTextForIntent = normalizeText(
+    `${product?.name || ""} ${product?.category || ""} ${Array.isArray(product?.amazonCategories) ? product.amazonCategories.join(" ") : ""}`
+  );
+  const pageTextForIntent = normalizeText(
+    `${amazonInfo?.title || ""} ${amazonInfo?.breadcrumbs || ""} ${amazonInfo?.features || ""} ${amazonInfo?.description || ""}`
+  );
+  const pageWantsCollagen = pageTextForIntent.includes("collagen") || pageTextForIntent.includes("peptides");
 
   // Generic terms like "coffee" or "candle" can appear in navigation, ads, or recommendations
   // on unrelated pages. We require at least one *non-generic* keyword match to consider a
@@ -388,13 +474,37 @@ function scoreProduct(product, amazonInfo) {
   // - If we don't know the page category, we require stronger evidence (>= 2 keyword matches)
   //   to avoid surfacing unrelated products (e.g., balloons matching candles).
   // - If we do know the category, require at least 1 keyword match.
-  const minKeywordMatches = amazonInfo.category === "unknown" ? 2 : 1;
+  // Relevance gate:
+  // - If brand matches, allow >= 1 keyword match
+  // - If the page is in a known supported domain and we're already domain-filtered,
+  //   allow >= 1 keyword match (helps cross-brand matches like toothpaste).
+  // - Otherwise require >= 2 meaningful keyword matches to avoid false positives.
+  const pageDomains = amazonInfo?.pageDomains instanceof Set ? amazonInfo.pageDomains : null;
+  const allowSingleKeywordByDomain =
+    pageDomains &&
+    (pageDomains.has("oralcare") || pageDomains.has("skincare") || pageDomains.has("household") || pageDomains.has("coffee") || pageDomains.has("supplements"));
+  const minKeywordMatches = brandMatches || allowSingleKeywordByDomain ? 1 : 2;
   if (keywordMatches < minKeywordMatches || nonGenericKeywordMatches < 1) {
     return { score: 0, keywordMatches, matchedKeywords: matched };
   }
 
-  score += (product.category === amazonInfo.category ? 60 : 20);
+  // Intent boost: if the page is clearly about collagen/peptides, heavily prefer collagen items.
+  // Option B: still allow other supplements from the same brand, but keep them below collagen.
+  if (pageWantsCollagen) {
+    if (productTextForIntent.includes("collagen") || productTextForIntent.includes("peptides")) {
+      score += 80;
+    } else {
+      // If it's not collagen, only allow it when it's the same brand (brand match), and do not boost.
+      if (!brandMatches) {
+        return { score: 0, keywordMatches, matchedKeywords: matched };
+      }
+    }
+  }
+
+  score += (amazonInfo.category !== "unknown" && product.category === amazonInfo.category ? 60 : 20);
   score += keywordMatches * 12;
+
+  if (brandMatches) score += 20;
 
   if (product.rating >= 5) score += 10;
   else if (product.rating >= 4.5) score += 7;
@@ -409,16 +519,85 @@ function scoreProduct(product, amazonInfo) {
   return { score, keywordMatches, matchedKeywords: matched };
 }
 
+function detectDomainsFromText(text) {
+  const t = normalizeText(text || "");
+  const domains = new Set();
+
+  const hasAny = (arr) => arr.some((w) => t.includes(w));
+
+  if (hasAny(["collagen", "peptides", "supplement", "supplements", "vitamin", "vitamins", "multivitamin", "protein powder"])) {
+    domains.add("supplements");
+  }
+  if (hasAny(["coffee", "espresso", "beans", "roast", "k-cup", "keurig"])) {
+    domains.add("coffee");
+  }
+  if (hasAny(["toothpaste", "tooth paste", "mouthwash", "oral care", "toothbrush", "teeth", "gum", "gingivitis"])) {
+    domains.add("oralcare");
+  }
+  if (hasAny(["laundry", "detergent", "dish soap", "cleaner", "cleaning", "soap"])) {
+    domains.add("household");
+  }
+  if (hasAny(["skincare", "moisturizer", "serum", "cleanser", "sunscreen", "lotion", "brightening"])) {
+    domains.add("skincare");
+  }
+  if (hasAny(["luggage", "suitcase", "travel", "wheels", "accessories", "accessory"])) {
+    domains.add("travel");
+  }
+
+  if (hasAny(["vacuum", "vacuuming", "robot vacuum", "robotic vacuum", "mop", "mopping", "suction", "dustbin", "self-emptying"])) {
+    domains.add("appliances");
+  }
+
+  return domains;
+}
+
+function getProductDomains(product) {
+  const text = `${product?.name || ""} ${product?.brand || ""} ${Array.isArray(product?.amazonCategories) ? product.amazonCategories.join(" ") : ""} ${product?.category || ""}`;
+  return detectDomainsFromText(text);
+}
+
 function matchProducts(amazonInfo, products, { limit = 3 } = {}) {
   const inStock = (products || []).filter((p) => p.availability !== "out_of_stock");
 
-  const categoryPool = amazonInfo.category === "unknown"
-    ? inStock
-    : inStock.filter((p) => p.category === amazonInfo.category);
+  const pageDomainText = `${amazonInfo?.title || ""} ${amazonInfo?.breadcrumbs || ""} ${amazonInfo?.features || ""} ${amazonInfo?.description || ""} ${amazonInfo?.combinedText || ""}`;
+  const pageDomains = detectDomainsFromText(pageDomainText);
+
+  const currentBrandText = normalizeText(amazonInfo?.title || "");
+
+  // If we can't infer any domain from the page, do not show recommendations.
+  // This prevents false positives on unrelated pages (e.g., vacuums).
+  if (!pageDomains.size) {
+    return { top: [], scored: [] };
+  }
+
+  const anyDomainOverlapInDb = inStock.some((p) => {
+    const pd = getProductDomains(p);
+    return Array.from(pageDomains).some((d) => pd.has(d));
+  });
+
+  if (!anyDomainOverlapInDb) {
+    return { top: [], scored: [] };
+  }
+
+  const categoryPool = inStock.filter((p) => {
+    const productDomains = getProductDomains(p);
+
+    // Allow overlap.
+    const overlaps = Array.from(pageDomains).some((d) => productDomains.has(d));
+    if (overlaps) return true;
+
+    // Option B: on supplements pages, allow other supplements from the same brand.
+    if (pageDomains.has("supplements") && productDomains.has("supplements")) {
+      const brandText = normalizeText(p.brand || "");
+      if (brandText && currentBrandText.includes(brandText)) return true;
+    }
+
+    return false;
+  });
 
   const scored = categoryPool
     .map((p) => {
-      const { score, keywordMatches, matchedKeywords } = scoreProduct(p, amazonInfo);
+      const { score, keywordMatches, matchedKeywords } = scoreProduct(p, { ...amazonInfo, pageDomains });
       return { product: p, score, keywordMatches, matchedKeywords };
     })
     .filter((x) => x.score > 0)
@@ -430,6 +609,13 @@ function matchProducts(amazonInfo, products, { limit = 3 } = {}) {
     });
 
   const top = scored.slice(0, limit);
+  if (top.length >= 2) {
+    const a = top[0];
+    const b = top[1];
+    if (a.score >= b.score + 40 || a.keywordMatches >= b.keywordMatches + 2) {
+      return { top: [a], scored };
+    }
+  }
   return { top, scored };
 }
 
@@ -501,6 +687,25 @@ function resolveMetaViaBackground(productUrl) {
   });
 }
 
+function resolveImageViaBackground(productUrl) {
+  return new Promise((resolve) => {
+    try {
+      chrome.runtime?.sendMessage?.(
+        { type: "FAIRFINDZ_RESOLVE_PRODUCT_IMAGE", productUrl },
+        (response) => {
+          if (chrome.runtime?.lastError) {
+            resolve(null);
+            return;
+          }
+          resolve(typeof response?.imageUrl === "string" && response.imageUrl.trim() ? response.imageUrl.trim() : null);
+        }
+      );
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
 function renderStarsHtml(rating) {
   const safe = typeof rating === "number" && !Number.isNaN(rating) ? Math.max(0, Math.min(5, rating)) : 0;
   const fullStars = Math.floor(safe);
@@ -559,98 +764,6 @@ function hydrateModalProductMeta(overlayEl) {
       const fallbackPrice = priceEl.getAttribute("data-fallback-price") || "";
       const finalPrice = typeof priceText === "string" && priceText.trim() ? priceText.trim() : (fallbackPrice.trim() ? fallbackPrice.trim() : "");
       priceEl.textContent = finalPrice;
-    }
-  });
-}
-
-async function resolveAmazonOgImage(productUrl) {
-  if (!productUrl) return null;
-  if (resolvedImageUrlCache.has(productUrl)) return resolvedImageUrlCache.get(productUrl);
-
-  try {
-    const res = await fetch(productUrl, {
-      method: "GET",
-      credentials: "include",
-      redirect: "follow",
-      headers: {
-        Accept: "text/html,application/xhtml+xml"
-      }
-    });
-    if (!res.ok) {
-      resolvedImageUrlCache.set(productUrl, null);
-      return null;
-    }
-
-    const html = await res.text();
-
-    // Prefer OpenGraph image (via DOM parsing; regex is too brittle).
-    try {
-      const doc = new DOMParser().parseFromString(html, "text/html");
-      const metaSelectors = [
-        'meta[property="og:image:secure_url"]',
-        'meta[property="og:image"]',
-        'meta[name="og:image"]',
-        'meta[name="twitter:image"]',
-        'meta[property="twitter:image"]'
-      ];
-
-      for (const sel of metaSelectors) {
-        const content = doc.querySelector(sel)?.getAttribute("content");
-        if (content) {
-          resolvedImageUrlCache.set(productUrl, content);
-          return content;
-        }
-      }
-    } catch {
-      // Fall back to pattern matching below.
-    }
-
-    // Fallback: look for image URLs embedded in JSON blobs.
-    const patterns = [
-      /"hiRes"\s*:\s*"(https?:\\\/\\\/[^\"]+)"/i,
-      /"large"\s*:\s*"(https?:\\\/\\\/[^\"]+)"/i,
-      /"mainUrl"\s*:\s*"(https?:\\\/\\\/[^\"]+)"/i
-    ];
-
-    for (const re of patterns) {
-      const m = html.match(re);
-      const raw = m?.[1];
-      if (raw) {
-        const url = raw.replace(/\\\//g, "/");
-        resolvedImageUrlCache.set(productUrl, url);
-        return url;
-      }
-    }
-
-    resolvedImageUrlCache.set(productUrl, null);
-    return null;
-  } catch {
-    resolvedImageUrlCache.set(productUrl, null);
-    return null;
-  }
-}
-
-function resolveImageViaBackground(productUrl) {
-  return new Promise((resolve) => {
-    try {
-      chrome.runtime?.sendMessage?.(
-        { type: "FAIRFINDZ_RESOLVE_PRODUCT_IMAGE", productUrl },
-        (response) => {
-          if (chrome.runtime?.lastError) {
-            console.log("🖼️ FairFindz background resolver lastError:", chrome.runtime.lastError.message);
-            resolve(null);
-            return;
-          }
-
-          const resolved = response?.imageUrl || null;
-          if (!resolved) {
-            console.log("🖼️ FairFindz background resolver returned null", { productUrl, response });
-          }
-          resolve(resolved);
-        }
-      );
-    } catch {
-      resolve(null);
     }
   });
 }
@@ -857,9 +970,9 @@ function createModal({ amazonInfo, matches } = {}) {
 
   const category = amazonInfo?.category || getProductCategory();
   const footerInfoText =
-    category !== "unknown"
+    category && category !== "unknown"
       ? `💡 Supporting Black-owned businesses in ${category}`
-      : "💡 Discover quality alternatives from Black-owned businesses";
+      : "💡 Supporting Black-owned businesses";
 
   const items = Array.isArray(matches) ? matches : [];
 
@@ -873,23 +986,26 @@ function createModal({ amazonInfo, matches } = {}) {
           ? product.badges.map((b) => `<span class="bbd-product-badge">🏷️ ${b}</span>`).join(" ")
           : "";
 
+        const priceText = escapeHtmlAttr(product.price || "");
+        const ratingText = renderStarsHtml(typeof product.rating === "number" ? product.rating : Number(product.rating || 0));
+        const reviewCountText = typeof product.reviewCount === "number" ? product.reviewCount : Number(product.reviewCount || 0);
+
         return `
           <div class="bbd-product-card">
             <img
               class="bbd-product-image"
-              src="${fallbackSrc}"
-              alt="Alternative product image"
+              src="${imageSrc || fallbackSrc}"
+              data-fallback-src="${fallbackSrc}"
               data-primary-src="${imageSrc}"
               data-product-url="${productUrlAttr}"
-              loading="lazy"
-              decoding="async"
-              referrerpolicy="strict-origin-when-cross-origin"
+              alt="${escapeHtmlAttr(product.name)}"
             />
+
             <div class="bbd-product-info">
               <div class="bbd-product-title">${product.name}</div>
               <div class="bbd-product-brand">By: ${product.brand}</div>
-              <div class="bbd-product-price" data-product-url="${productUrlAttr}" data-fallback-price="${escapeHtmlAttr(product.price || "")}">Loading...</div>
-              <div class="bbd-product-rating" data-product-url="${productUrlAttr}" data-fallback-rating="${escapeHtmlAttr(String(product.rating ?? ""))}" data-fallback-review-count="${escapeHtmlAttr(String(product.reviewCount ?? ""))}">Loading...</div>
+              <div class="bbd-product-price">${priceText}</div>
+              <div class="bbd-product-rating">${ratingText} <span class="bbd-review-count">(${Number.isFinite(reviewCountText) ? reviewCountText.toLocaleString() : "0"})</span></div>
               <div class="bbd-product-badges">${badges}</div>
 
               <button
@@ -943,7 +1059,9 @@ function createModal({ amazonInfo, matches } = {}) {
   document.body.appendChild(overlay);
 
   hydrateModalProductImages(overlay);
-  hydrateModalProductMeta(overlay);
+
+  // MVP: use hardcoded price/rating/review counts from businesses.json
+  // (no live hydration).
 
   // Trigger entrance animation.
   // We add the element in its initial hidden state, then on the next frame
@@ -1024,9 +1142,11 @@ async function logProductPageStatus() {
 
       const amazonInfo = extractAmazonProduct();
       cachedAmazonInfo = amazonInfo;
-      console.log("🔎 Amazon product info:", {
-        category: amazonInfo.category,
+      cachedUrl = window.location.href;
+      cachedAsin = extractAmazonAsinFromUrl(window.location.href);
+      console.log("🧾 Amazon product info:", {
         title: amazonInfo.title,
+        category: amazonInfo.category,
         priceText: amazonInfo.priceText
       });
 
@@ -1053,6 +1173,10 @@ async function logProductPageStatus() {
       // The toast auto-dismisses after 5 seconds and then the toolbar icon flashes.
       window.setTimeout(() => {
         if (!isProductPage()) return;
+        // Avoid showing stale toasts when Amazon navigates without a full reload.
+        if (cachedUrl && cachedUrl !== window.location.href) return;
+        const currentAsin = extractAmazonAsinFromUrl(window.location.href);
+        if (cachedAsin && currentAsin && cachedAsin !== currentAsin) return;
         if (!Array.isArray(top) || top.length === 0) return;
         createToast({
           onOpenFullModal: () => createModal({ amazonInfo: cachedAmazonInfo, matches: cachedMatches || [] })
@@ -1082,6 +1206,10 @@ chrome.runtime?.onMessage?.addListener((message) => {
 
   // If we already computed matches for this page, reuse them.
   if (cachedAmazonInfo && Array.isArray(cachedMatches)) {
+    if (cachedUrl && cachedUrl !== window.location.href) return;
+    const currentAsin = extractAmazonAsinFromUrl(window.location.href);
+    if (cachedAsin && currentAsin && cachedAsin !== currentAsin) return;
+    if (cachedMatches.length === 0) return;
     closeToast();
     createModal({ amazonInfo: cachedAmazonInfo, matches: cachedMatches });
     return;
@@ -1103,8 +1231,11 @@ chrome.runtime?.onMessage?.addListener((message) => {
 
       const amazonInfo = extractAmazonProduct();
       cachedAmazonInfo = amazonInfo;
+      cachedUrl = window.location.href;
+      cachedAsin = extractAmazonAsinFromUrl(window.location.href);
       const { top } = matchProducts(amazonInfo, products, { limit: 3 });
       cachedMatches = top;
+      if (!Array.isArray(top) || top.length === 0) return;
       closeToast();
       createModal({ amazonInfo, matches: top });
     } catch (err) {
@@ -1119,4 +1250,30 @@ if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", logProductPageStatus, { once: true });
 } else {
   logProductPageStatus();
+}
+
+// Amazon sometimes navigates between product pages via History API without a full reload.
+// Recompute matches when the URL changes.
+try {
+  lastObservedUrl = window.location.href;
+
+  window.addEventListener("popstate", onPossibleUrlChange);
+
+  const originalPushState = history.pushState;
+  history.pushState = function (...args) {
+    const ret = originalPushState.apply(this, args);
+    onPossibleUrlChange();
+    return ret;
+  };
+
+  const originalReplaceState = history.replaceState;
+  history.replaceState = function (...args) {
+    const ret = originalReplaceState.apply(this, args);
+    onPossibleUrlChange();
+    return ret;
+  };
+
+  window.setInterval(onPossibleUrlChange, 1000);
+} catch {
+  // ignore
 }

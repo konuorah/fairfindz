@@ -1,154 +1,623 @@
 {
   "products": [
     {
-      "id": "coffee_001",
-      "name": "BLK & Bold Premium Coffee K-Cups, 40 Count",
-      "brand": "BLK & Bold",
-      "category": "coffee",
-      "price": "$26.99",
-      "rating": 5,
-      "reviewCount": 2847,
-      "imageUrl": "https://m.media-amazon.com/images/I/71mVf8f8GXL._AC_SL1500_.jpg",
-      "productUrl": "https://www.amazon.com/dp/B08FQZP3ZJ",
-      "description": "Premium Arabica coffee pods, medium roast, compatible with Keurig brewers.",
-      "badges": ["Black-Owned", "Veteran-Owned"],
-      "amazonKeywords": ["coffee", "k-cups", "keurig", "pods", "arabica"],
-      "amazonCategories": ["Grocery & Gourmet Food", "Beverages", "Coffee", "Single-Serve Capsules & Pods"]
+      "id": "95c1eb53-26df-4877-862d-2287cc1a8e81",
+      "name": "Black Girl Vitamins Once a Day - Womens Multivitamin Gummy - Vitamin A, B, C, E and Zinc. Multivitamin for Women, Immune Support. Vegan, Gluten-Free. Made in The USA (30 Day Supply, Strawberry)",
+      "brand": "Black Girl Vitamins",
+      "category": "multivitamin",
+      "price": "$25.00",
+      "rating": 4.7,
+      "reviewCount": 1975,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/Black-Girl-Vitamins-Once-Day/dp/B0D2PSNFYT/ref=ast_sto_dp_puis?th=1",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "Health & Household",
+        "Multivitamins"
+      ],
+      "source": "amazon",
+      "asin": "B0D2PSNFYT",
+      "variant": "Strawberry / 30 Day Supply",
+      "listingId": "63bbf8ba-a73d-4976-88ed-0b501e704b42",
+      "productId": "95c1eb53-26df-4877-862d-2287cc1a8e81",
+      "brandId": "193e4006-35b4-4362-96ac-2dab091b5830"
     },
     {
-      "id": "coffee_002",
-      "name": "Bereka Blend - Roasted by Boon Boona Coffee - Whole Bean, 12 oz",
-      "brand": "Boon Boona Coffee",
-      "category": "coffee",
-      "price": "$18.00",
-      "rating": 5,
-      "reviewCount": 85,
-      "imageUrl": "https://m.media-amazon.com/images/I/71B3Hn9qfSL._AC_SL1500_.jpg",
-      "productUrl": "https://www.amazon.com/Bereka-Blend-Roasted-Boona-Coffee/dp/B0DV9WDCNY",
-      "description": "Single-origin focused whole bean coffee roasted in small batches.",
-      "badges": ["Black-Owned", "Small Business"],
-      "amazonKeywords": ["coffee", "whole bean", "ethiopian", "specialty", "fresh"],
-      "amazonCategories": ["Grocery & Gourmet Food", "Beverages", "Coffee", "Roasted Coffee Beans"]
-    },
-    {
-      "id": "coffee_003",
-      "name": "Kahawa 1893 Whole Bean Coffee, Medium Roast Kenyan",
-      "brand": "Kahawa 1893",
-      "category": "coffee",
-      "price": "$18.99",
-      "rating": 5,
-      "reviewCount": 620,
-      "imageUrl": "https://m.media-amazon.com/images/I/71d3r7p0fVL._AC_SL1500_.jpg",
-      "productUrl": "https://www.amazon.com/KAHAWA-1893-Directly-Sourced-Blackcurrant/dp/B0CKFL22BS",
-      "description": "Directly sourced Kenyan coffee with bright, fruit-forward notes.",
-      "badges": ["Black-Owned", "Woman-Owned"],
-      "amazonKeywords": ["coffee", "whole bean", "kenyan", "medium roast", "single origin"],
-      "amazonCategories": ["Grocery & Gourmet Food", "Beverages", "Coffee", "Roasted Coffee Beans"]
-    },
-    {
-      "id": "coffee_004",
-      "name": "Coffee Uplifts People Honey Berry Mocha Java, Whole Bean",
+      "id": "3d83509e-8e7c-4432-bdaf-5a19bc25f2cb",
+      "name": "Coffee Uplifts People Honey Berry Mocha Java - Whole Bean Coffee Medium Roast - Sumatra & Ethiopian Specialty Grade Coffee Beans, 100% Arabica Coffee, Fair Trade - Berry, Chocolate & Honey Notes -12oz",
       "brand": "Coffee Uplifts People",
       "category": "coffee",
-      "price": "$19.99",
-      "rating": 5,
-      "reviewCount": 210,
-      "imageUrl": "https://m.media-amazon.com/images/I/81Y7BqQm7lL._AC_SL1500_.jpg",
-      "productUrl": "https://www.amazon.com/Coffee-Uplifts-People-Honey-Berry/dp/B0CLHCXSB7",
-      "description": "Whole bean specialty coffee with a smooth, chocolatey profile.",
-      "badges": ["Black-Owned"],
-      "amazonKeywords": ["coffee", "whole bean", "specialty", "medium roast", "fresh"],
-      "amazonCategories": ["Grocery & Gourmet Food", "Beverages", "Coffee", "Roasted Coffee Beans"]
+      "price": "$15.99",
+      "rating": 4.1,
+      "reviewCount": 50,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/Coffee-Uplifts-People-Honey-Berry/dp/B0CLHCXSB7?ref_=ast_sto_dp&th=1",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "Grocery & Gourmet Food",
+        "Coffee"
+      ],
+      "source": "amazon",
+      "asin": "B0CLHCXSB7",
+      "variant": "12oz",
+      "listingId": "1736eedd-a31a-4b1e-9516-961d787dcdfd",
+      "productId": "3d83509e-8e7c-4432-bdaf-5a19bc25f2cb",
+      "brandId": "a4b0252b-5004-4be9-bda3-f62d70006bbc"
     },
     {
-      "id": "coffee_005",
-      "name": "Dope Coffee Dope Sunrise Blend, Whole Bean, Medium Roast",
-      "brand": "Dope Coffee",
-      "category": "coffee",
-      "price": "$16.99",
-      "rating": 4,
-      "reviewCount": 540,
-      "imageUrl": "https://m.media-amazon.com/images/I/71cS9jXG9cL._AC_SL1500_.jpg",
-      "productUrl": "https://www.amazon.com/Dope-Coffee-Sunrise-Medium-Arabica/dp/B0BZWMXJTQ",
-      "description": "Medium roast whole bean coffee crafted for a smooth, everyday cup.",
-      "badges": ["Black-Owned"],
-      "amazonKeywords": ["coffee", "whole bean", "medium roast", "arabica", "fresh"],
-      "amazonCategories": ["Grocery & Gourmet Food", "Beverages", "Coffee", "Roasted Coffee Beans"]
+      "id": "0b496238-352d-41d3-8c26-95982c292d67",
+      "name": "Black Girl Vitamins Collagen Peptides",
+      "brand": "Black Girl Vitamins",
+      "category": "collagen, supplements, women, black-owned",
+      "price": "$39.99",
+      "rating": 4.4,
+      "reviewCount": 2292,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/Black-Girl-Vitamins-Collagen-Peptides/dp/B0CV5ZDC9X",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "collagen supplement"
+      ],
+      "source": "amazon",
+      "asin": "B0CV5ZDC9X",
+      "variant": "",
+      "listingId": "e330bd60-8c3c-41f4-9268-80223f369374",
+      "productId": "0b496238-352d-41d3-8c26-95982c292d67",
+      "brandId": "193e4006-35b4-4362-96ac-2dab091b5830"
     },
     {
-      "id": "candle_001",
-      "name": "Harlem Candle Company Luxury Scented Candle, 11 oz",
-      "brand": "Harlem Candle Company",
-      "category": "candles",
-      "price": "$48.00",
-      "rating": 5,
-      "reviewCount": 412,
-      "imageUrl": "https://m.media-amazon.com/images/I/61nO1mQbK3L._AC_SL1500_.jpg",
-      "productUrl": "https://www.amazon.com/dp/B07W7XH2P9",
-      "description": "Luxury candle with a rich fragrance blend designed for an elevated home ambiance.",
-      "badges": ["Black-Owned", "Luxury"],
-      "amazonKeywords": ["candle", "scented", "luxury", "soy", "home fragrance"],
-      "amazonCategories": ["Home & Kitchen", "Home Décor Products", "Candles & Holders", "Candles"]
+      "id": "47ebb95b-9ba1-4b23-a062-6f89f607cd40",
+      "name": "Balanced Intimate Feminine Wash (Sensitive)",
+      "brand": "Balanced Intimate",
+      "category": "feminine care, sensitive skin",
+      "price": "$27.95",
+      "rating": 4.4,
+      "reviewCount": 1544,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/Balanced-Intimate-Feminine-Antibacterial-Sensitive/dp/B0BXQS6RH7",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "feminine wash"
+      ],
+      "source": "amazon",
+      "asin": "B0BXQS6RH7",
+      "variant": "Sensitive",
+      "listingId": "f05edf6d-121a-4f1b-b7f6-3752d177346a",
+      "productId": "47ebb95b-9ba1-4b23-a062-6f89f607cd40",
+      "brandId": "282a6e45-74e0-45e6-922c-daf5a566f2b1"
     },
     {
-      "id": "candle_002",
-      "name": "TERMINAL B Luxury Scented Candle | EZE - Black Currant & Amber",
-      "brand": "TERMINAL B",
-      "category": "candles",
-      "price": "$34.00",
-      "rating": 5,
-      "reviewCount": 190,
-      "imageUrl": "https://m.media-amazon.com/images/I/61GmVvKxQUL._AC_SL1500_.jpg",
+      "id": "32a6a690-b75d-4ca9-bc02-afd7ad024e87",
+      "name": "Melanin Turmeric Brightening Underarm Scrub",
+      "brand": "Melanin Haircare",
+      "category": "turmeric, exfoliating, skincare",
+      "price": "$28.95",
+      "rating": 4.1,
+      "reviewCount": 2034,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/Melanin-Turmeric-Brightening-Underarms-Exfoliating/dp/B0BXPY5BZ9",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "exfoliating scrub"
+      ],
+      "source": "amazon",
+      "asin": "B0BXPY5BZ9",
+      "variant": "",
+      "listingId": "0c3f3807-c9bb-4d3b-8184-a8a467c44f68",
+      "productId": "32a6a690-b75d-4ca9-bc02-afd7ad024e87",
+      "brandId": "96c06c73-dac9-4f79-b5fa-21475c7f1083"
+    },
+    {
+      "id": "71f001ff-8c0e-45fe-a7bb-a43bff31755b",
+      "name": "BELLANOMI Exfoliating African Net Sponge",
+      "brand": "BELLANOMI",
+      "category": "african net sponge, exfoliating",
+      "price": "$9.99",
+      "rating": 4.6,
+      "reviewCount": 2166,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/BELLANOMI-Exfoliating-Authentic-Ethically-Scrubber/dp/B0DL3NJRVV",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "body scrubber"
+      ],
+      "source": "amazon",
+      "asin": "B0DL3NJRVV",
+      "variant": "",
+      "listingId": "0eb4f57b-bdd1-4a48-84cb-ce568691b561",
+      "productId": "71f001ff-8c0e-45fe-a7bb-a43bff31755b",
+      "brandId": "f8b6120e-2ef9-4b0a-b1ff-40116d36c4be"
+    },
+    {
+      "id": "db8a698e-cd4b-4992-a45a-13faacd2f02d",
+      "name": "Papaya Leaf Extract 600mg Capsules",
+      "brand": "Micro Ingredients",
+      "category": "papaya leaf, immune support",
+      "price": "$68.95",
+      "rating": 4.5,
+      "reviewCount": 1118,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/Papaya-Leaf-Extract-600mg-10/dp/B00IA275HG",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "herbal supplement"
+      ],
+      "source": "amazon",
+      "asin": "B00IA275HG",
+      "variant": "",
+      "listingId": "6e7c1fae-e41c-4306-93b3-11c2e2579711",
+      "productId": "db8a698e-cd4b-4992-a45a-13faacd2f02d",
+      "brandId": "34650c88-139f-431e-be69-0ba3f6b522de"
+    },
+    {
+      "id": "56374ef7-1ad7-4552-965b-1b64244021a0",
+      "name": "No Nothing Sensitive Strong Hairspray",
+      "brand": "No Nothing",
+      "category": "sensitive scalp, fragrance free",
+      "price": "$32.00",
+      "rating": 4.3,
+      "reviewCount": 1364,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/No-nothing-Sensitive-Strong-Hairspray/dp/B0793GMPX5",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "hair spray"
+      ],
+      "source": "amazon",
+      "asin": "B0793GMPX5",
+      "variant": "",
+      "listingId": "b1cf5841-581e-47dc-b038-63febf4cca68",
+      "productId": "56374ef7-1ad7-4552-965b-1b64244021a0",
+      "brandId": "e63daa2d-f280-4834-bcdb-079c57e25c23"
+    },
+    {
+      "id": "9b484a70-1f22-4dfc-a5c2-e0ff98e974fb",
+      "name": "Simpleaf Lavender Flushable Wipes",
+      "brand": "Simpleaf",
+      "category": "lavender, flushable wipes",
+      "price": "$4.19",
+      "rating": 4.4,
+      "reviewCount": 88,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/Simpleaf-Lavender-Essential-Flushable-Wipes/dp/B0CN4R2B5Z",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "flushable wipes"
+      ],
+      "source": "amazon",
+      "asin": "B0CN4R2B5Z",
+      "variant": "",
+      "listingId": "a90b43aa-78a6-454d-b1af-6941b3841448",
+      "productId": "9b484a70-1f22-4dfc-a5c2-e0ff98e974fb",
+      "brandId": "80214ff2-5484-4edd-af32-2c1a89c80f61"
+    },
+    {
+      "id": "eecf5be3-3ef5-4192-a06b-f6f363362aa9",
+      "name": "PLAY PITS Natural Deodorant (Sensitive)",
+      "brand": "Play Pits",
+      "category": "natural deodorant, sensitive",
+      "price": "$35.97",
+      "rating": 4.6,
+      "reviewCount": 2115,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/PLAY-PITS-Deodorant-Sensitive-Essential/dp/B0CVNM67VH",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "deodorant"
+      ],
+      "source": "amazon",
+      "asin": "B0CVNM67VH",
+      "variant": "Sensitive",
+      "listingId": "b9ba2fec-80c3-44ee-9f6f-3c9bc493ffc7",
+      "productId": "eecf5be3-3ef5-4192-a06b-f6f363362aa9",
+      "brandId": "11352457-e548-4d0e-ba95-396a9400ce6d"
+    },
+    {
+      "id": "a6675b64-f402-4576-b4eb-07314a23e40b",
+      "name": "EDEN BodyWorks Peppermint Tea Tree Shampoo",
+      "brand": "EDEN BodyWorks",
+      "category": "peppermint, tea tree, natural hair",
+      "price": "$9.60",
+      "rating": 4.5,
+      "reviewCount": 1337,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/EDEN-BodyWorks-Peppermint-Clear-Shampoo/dp/B007MCLVSO",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "shampoo"
+      ],
+      "source": "amazon",
+      "asin": "B007MCLVSO",
+      "variant": "",
+      "listingId": "123a832c-68a1-4ea6-8c5b-333d99b1af95",
+      "productId": "a6675b64-f402-4576-b4eb-07314a23e40b",
+      "brandId": "8ad6e75e-6ff2-4122-a670-c60d280e089c"
+    },
+    {
+      "id": "605a7569-bb45-4316-bcaa-5aaccc4510b8",
+      "name": "Her Fantasy Box Yummy Body Collection",
+      "brand": "Her Fantasy Box",
+      "category": "body care, gift set",
+      "price": "$15.99",
+      "rating": 4.4,
+      "reviewCount": 2837,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/Her-Fantasy-Box-Yummy-Body/dp/B0CK4FQVFN",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "body care set"
+      ],
+      "source": "amazon",
+      "asin": "B0CK4FQVFN",
+      "variant": "",
+      "listingId": "cf0964ee-e671-4b40-8a1d-23d9c2776b09",
+      "productId": "605a7569-bb45-4316-bcaa-5aaccc4510b8",
+      "brandId": "dd2845c1-61a4-4c1e-a66f-df5c76cdc3e7"
+    },
+    {
+      "id": "a992600c-4f25-4792-a5ff-837108e0859b",
+      "name": "Kreyol Essence Rosemary Mint Hair & Scalp Oil",
+      "brand": "Kreyol Essence",
+      "category": "rosemary, peppermint, scalp care",
+      "price": "$33.99",
+      "rating": 4.4,
+      "reviewCount": 4287,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/Kreyol-Essence-Rosemary-Peppermintint-Humectant/dp/B0725MTN4H",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "hair oil"
+      ],
+      "source": "amazon",
+      "asin": "B0725MTN4H",
+      "variant": "",
+      "listingId": "a9bd7eba-7865-49ac-85bc-2fba94c81fe9",
+      "productId": "a992600c-4f25-4792-a5ff-837108e0859b",
+      "brandId": "ee5fd453-4393-453f-9710-5674c68c89ad"
+    },
+    {
+      "id": "22047571-ba11-45a6-8db9-8f647c0ab520",
+      "name": "Zomac Satin Sleep Bonnet with Hearts",
+      "brand": "Zomac",
+      "category": "satin bonnet, sleepwear",
+      "price": "$8.99",
+      "rating": 4.2,
+      "reviewCount": 102,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/Zomac-Bonnet-Sleeping-Bonnets-Hearts/dp/B0BR62775Y",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "sleep bonnet"
+      ],
+      "source": "amazon",
+      "asin": "B0BR62775Y",
+      "variant": "",
+      "listingId": "f5bcd296-dce7-4c83-80cb-6d6505578546",
+      "productId": "22047571-ba11-45a6-8db9-8f647c0ab520",
+      "brandId": "71b096d4-669c-4db1-9dfd-774c6ffcef12"
+    },
+    {
+      "id": "6e52419c-21aa-4a5a-9c8f-39d9a25a11c1",
+      "name": "Bolden Brightening Moisturizer",
+      "brand": "Bolden",
+      "category": "brightening, skincare",
+      "price": "$27.99",
+      "rating": 4.5,
+      "reviewCount": 630,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/Bolden-Brightening-Moisturizer-Specially-Formulated/dp/B07FK86JBM",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "moisturizer"
+      ],
+      "source": "amazon",
+      "asin": "B07FK86JBM",
+      "variant": "",
+      "listingId": "b1551839-3ab7-405b-b9c0-5565fc91b94f",
+      "productId": "6e52419c-21aa-4a5a-9c8f-39d9a25a11c1",
+      "brandId": "54b4c970-a61e-49b3-9703-35d204c58fa8"
+    },
+    {
+      "id": "ee39898b-c49e-4c2f-a0db-e4cfa4c877b7",
+      "name": "Take OFF Removable Luggage Wheels",
+      "brand": "Take OFF",
+      "category": "travel accessory",
+      "price": "$99.59",
+      "rating": 4.3,
+      "reviewCount": 1159,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/Take-OFF-Luggage-Removable-Accessories/dp/B0DCPZL9NF",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "luggage accessory"
+      ],
+      "source": "amazon",
+      "asin": "B0DCPZL9NF",
+      "variant": "",
+      "listingId": "422bec66-f5f5-49fe-8fc5-b3c205a7b209",
+      "productId": "ee39898b-c49e-4c2f-a0db-e4cfa4c877b7",
+      "brandId": "e54240a9-0002-4d78-b26b-dfa09195ee7f"
+    },
+    {
+      "id": "3067f88d-d0da-48fc-b380-8fcf2ff4873d",
+      "name": "SprinJene Natural Total Care Toothpaste",
+      "brand": "SprinJene",
+      "category": "fluoride free, oral care",
+      "price": "$9.59",
+      "rating": 4.5,
+      "reviewCount": 770,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/SprinJene-Natural%C2%AE-Total-Fluoride-Toothpaste/dp/B099ZKYNV1",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "toothpaste"
+      ],
+      "source": "amazon",
+      "asin": "B099ZKYNV1",
+      "variant": "",
+      "listingId": "5895d75d-8bdb-4391-b1a1-99d3d4cb6e5a",
+      "productId": "3067f88d-d0da-48fc-b380-8fcf2ff4873d",
+      "brandId": "8e49a0a8-1d0e-4f3a-a791-a80c365304b6"
+    },
+    {
+      "id": "5a3581a4-8043-4f2e-888b-4b8be1677b70",
+      "name": "Terminal EZE Luxury Scented Candle",
+      "brand": "Terminal EZE",
+      "category": "luxury candle",
+      "price": "$56.00",
+      "rating": 4.5,
+      "reviewCount": 74,
+      "imageUrl": "",
       "productUrl": "https://www.amazon.com/TERMINAL-Luxury-Scented-Candle-EZE/dp/B09ZKM8G6R",
-      "description": "Luxury candle inspired by global destinations with bold fragrance throw.",
-      "badges": ["Black-Owned", "Luxury"],
-      "amazonKeywords": ["candle", "luxury", "scented", "amber", "black currant"],
-      "amazonCategories": ["Home & Kitchen", "Home Décor Products", "Candles & Holders", "Candles"]
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "scented candle"
+      ],
+      "source": "amazon",
+      "asin": "B09ZKM8G6R",
+      "variant": "",
+      "listingId": "c842544d-40f2-471e-b254-50be7ce63f55",
+      "productId": "5a3581a4-8043-4f2e-888b-4b8be1677b70",
+      "brandId": "3209e93b-97b4-4738-aca0-abde6659bb6a"
     },
     {
-      "id": "candle_003",
-      "name": "The Black Candle Company 6 oz Luxury Candle",
-      "brand": "The Black Candle Company",
-      "category": "candles",
-      "price": "$22.00",
-      "rating": 4,
-      "reviewCount": 110,
-      "imageUrl": "https://m.media-amazon.com/images/I/61kq2w6yXlL._AC_SL1500_.jpg",
-      "productUrl": "https://www.amazon.com/Black-Candle-Company-Luxury-Excellence/dp/B0BFKVRYVX",
-      "description": "Luxury candle designed for a clean burn and strong fragrance throw.",
-      "badges": ["Black-Owned", "Small Business"],
-      "amazonKeywords": ["candle", "luxury", "scented", "soy", "home"],
-      "amazonCategories": ["Home & Kitchen", "Home Décor Products", "Candles & Holders", "Candles"]
+      "id": "7ce0cc54-d961-43fa-b6f6-7fe84342b97a",
+      "name": "Harlem Candle Company Josephine Candle",
+      "brand": "Harlem Candle Company",
+      "category": "luxury candle",
+      "price": "$52.00",
+      "rating": 4.4,
+      "reviewCount": 555,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/Harlem-Candle-Company-Josephine-Luxury/dp/B0BFT9PCJN",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "scented candle"
+      ],
+      "source": "amazon",
+      "asin": "B0BFT9PCJN",
+      "variant": "",
+      "listingId": "78cc34f9-2826-40a2-a804-f6ea32cd6bfb",
+      "productId": "7ce0cc54-d961-43fa-b6f6-7fe84342b97a",
+      "brandId": "b7291dff-8313-485f-aef1-37a7628c197f"
     },
     {
-      "id": "candle_004",
-      "name": "FRÈRES BRANCHIAUX Amber Nights 8 oz Scented Soy Candle",
-      "brand": "Frères Branchiaux",
-      "category": "candles",
-      "price": "$24.99",
-      "rating": 4,
-      "reviewCount": 1396,
-      "imageUrl": "https://m.media-amazon.com/images/I/71nJ8bqQ9VL._AC_SL1500_.jpg",
-      "productUrl": "https://www.amazon.com/FR%C3%88RES-BRANCHIAUX-Black-Leaves-Candle/dp/B099S9LWYF",
-      "description": "Soy candle with a warm, elevated scent profile designed for strong throw.",
-      "badges": ["Black-Owned"],
-      "amazonKeywords": ["candle", "soy", "scented", "amber", "home"],
-      "amazonCategories": ["Home & Kitchen", "Home Décor Products", "Candles & Holders", "Candles"]
+      "id": "8e2b630a-d933-4db6-ac45-66ba83a97953",
+      "name": "Kahawa 1893 Medium Roast Coffee",
+      "brand": "Kahawa 1893",
+      "category": "medium roast coffee",
+      "price": "$20.99",
+      "rating": 4.4,
+      "reviewCount": 600,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/Kahawa-1893-Coffee-Medium-Brewers/dp/B0D84Z3BYL",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "coffee"
+      ],
+      "source": "amazon",
+      "asin": "B0D84Z3BYL",
+      "variant": "",
+      "listingId": "d3294644-54f8-4ce5-a715-f1652a4ea966",
+      "productId": "8e2b630a-d933-4db6-ac45-66ba83a97953",
+      "brandId": "502a9f9f-fa09-4b26-b22d-3a5ddaf307c4"
     },
     {
-      "id": "candle_005",
-      "name": "3 Candle Company LLC Long Lasting Luxury Scented Candle",
-      "brand": "3 Candle Company LLC",
-      "category": "candles",
-      "price": "$29.99",
-      "rating": 4,
-      "reviewCount": 230,
-      "imageUrl": "https://m.media-amazon.com/images/I/71VvX6cQHqL._AC_SL1500_.jpg",
-      "productUrl": "https://www.amazon.com/Candle-Company-LLC-Long-Lasting/dp/B09NV2R26G",
-      "description": "Hand-poured candle designed for long burn time and a clean, strong scent.",
-      "badges": ["Black-Owned"],
-      "amazonKeywords": ["candle", "luxury", "scented", "long lasting", "home"],
-      "amazonCategories": ["Home & Kitchen", "Home Décor Products", "Candles & Holders", "Candles"]
+      "id": "bb5d318f-1245-4e44-8fd0-ac4392cfa1b7",
+      "name": "BLK & Bold Operator Premium Coffee",
+      "brand": "BLK & Bold",
+      "category": "premium arabica coffee",
+      "price": "$25.97",
+      "rating": 4.5,
+      "reviewCount": 26,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/BLK-Bold-Operator-Premium-Arabica/dp/B0CY7QHZ69",
+      "description": "",
+      "badges": [],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "coffee"
+      ],
+      "source": "amazon",
+      "asin": "B0CY7QHZ69",
+      "variant": "",
+      "listingId": "2766b482-6237-48f9-b1c2-4cf17531bb15",
+      "productId": "bb5d318f-1245-4e44-8fd0-ac4392cfa1b7",
+      "brandId": "BLK & Bold Operator Premium Coffee"
+    },
+    {
+      "id": "8590fd00-d055-4ecc-95ff-dc2aafc0d0b5",
+      "name": "BLK & Bold Medium Roast Coffee",
+      "brand": "BLK & Bold",
+      "category": "certified medium roast",
+      "price": "$28.99",
+      "rating": 4.5,
+      "reviewCount": 1913,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/BLK-Bold-Coffee-Certified-Medium/dp/B085T2QG5J",
+      "description": "",
+      "badges": [],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "coffee"
+      ],
+      "source": "amazon",
+      "asin": "B085T2QG5J",
+      "variant": "",
+      "listingId": "ea1ee7a0-1ee2-4350-b781-43ddaf4af1b6",
+      "productId": "8590fd00-d055-4ecc-95ff-dc2aafc0d0b5",
+      "brandId": "BLK & Bold Medium Roast Coffee"
+    },
+    {
+      "id": "854bb5a5-3aab-46aa-928a-b7856abac662",
+      "name": "True Laundry Detergent with Fragrance Boosters",
+      "brand": "True Laundry",
+      "category": "concentrated detergent",
+      "price": "$26.98",
+      "rating": 4.8,
+      "reviewCount": 51,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/True-Detergent-Laundry-Fragrances-Concentrated/dp/B0B76LNJ9L",
+      "description": "",
+      "badges": [
+        "Black Owned"
+      ],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "laundry detergent"
+      ],
+      "source": "amazon",
+      "asin": "B0B76LNJ9L",
+      "variant": "",
+      "listingId": "198fbab5-644c-4a32-8787-3e7e1c784ad0",
+      "productId": "854bb5a5-3aab-46aa-928a-b7856abac662",
+      "brandId": "dc1fccab-cf47-4437-ad1a-cc44ec1810b3"
+    },
+    {
+      "id": "a3b8dd87-76b0-47ed-bb21-79a3892531a9",
+      "name": "True Laundry Detergent Concentrated",
+      "brand": "True Laundry",
+      "category": "concentrated detergent",
+      "price": "$24.74",
+      "rating": 4.7,
+      "reviewCount": 382,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/True-Laundry-Detergent-Detergent-Concentrated/dp/B09GYQ9SJY",
+      "description": "",
+      "badges": [],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "laundry detergent"
+      ],
+      "source": "amazon",
+      "asin": "B09GYQ9SJY",
+      "variant": "",
+      "listingId": "ef7c5182-a52d-4e4f-a75c-b43e5f3d04a3",
+      "productId": "a3b8dd87-76b0-47ed-bb21-79a3892531a9",
+      "brandId": "True Laundry Detergent Concentrated"
+    },
+    {
+      "id": "6464c432-9124-49e0-9010-f1cab91d8f2d",
+      "name": "True Laundry Fabric Softener Lavender",
+      "brand": "True Laundry",
+      "category": "lavender softener",
+      "price": "$27.94",
+      "rating": 4.8,
+      "reviewCount": 50,
+      "imageUrl": "",
+      "productUrl": "https://www.amazon.com/True-Detergent-Softener-Lavender-Concentrated/dp/B0B76MNPKR",
+      "description": "",
+      "badges": [],
+      "amazonKeywords": [],
+      "amazonCategories": [
+        "fabric softener"
+      ],
+      "source": "amazon",
+      "asin": "B0B76MNPKR",
+      "variant": "",
+      "listingId": "cd3fd6c6-bc7b-4510-a267-b2f6841aeb26",
+      "productId": "6464c432-9124-49e0-9010-f1cab91d8f2d",
+      "brandId": "True Laundry Fabric Softener Lavender"
     }
   ]
 }
