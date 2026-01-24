@@ -4,7 +4,10 @@
   "version": "0.1.0",
   "description": "Discover Black-owned alternatives while shopping",
   "permissions": ["storage", "activeTab", "tabs"],
-  "host_permissions": ["*://*.amazon.com/*"],
+  "host_permissions": [
+    "*://*.amazon.com/*",
+    "https://mlxcrnhlgdwphfxkakok.supabase.co/*"
+  ],
   "action": {
     "default_title": "View Black-owned alternatives"
   },
@@ -13,15 +16,18 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["data/businesses.json"],
+      "resources": [
+        "data/businesses.json",
+        "content/auth-modal.html"
+      ],
       "matches": ["*://*.amazon.com/*"]
     }
   ],
   "content_scripts": [
     {
       "matches": ["*://*.amazon.com/*"],
-      "js": ["content/content.js"],
-      "css": ["content/content.css"],
+      "js": ["content/auth-modal.js", "content/content.js"],
+      "css": ["content/content.css", "content/auth-modal.css"],
       "run_at": "document_idle"
     }
   ]

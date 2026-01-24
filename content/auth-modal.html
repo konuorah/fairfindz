@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FairFindz Auth Modal</title>
+  </head>
+  <body>
+    <div id="ff-auth-overlay" class="ff-auth-overlay" role="presentation">
+      <div class="ff-auth-modal" role="dialog" aria-modal="true" aria-labelledby="ff-auth-title">
+        <button class="ff-auth-close" type="button" aria-label="Close">&times;</button>
+
+        <h2 id="ff-auth-title" class="ff-auth-title">Welcome to FairFindz! 🎯</h2>
+        <p class="ff-auth-subtitle">Discover Black-owned alternatives while you shop on Amazon</p>
+
+        <form id="ff-signup-form" class="ff-auth-form" novalidate>
+          <label class="ff-auth-label" for="ff-email">Email</label>
+          <input id="ff-email" name="email" class="ff-auth-input" type="email" autocomplete="email" required />
+          <div id="ff-email-error" class="ff-auth-error" aria-live="polite"></div>
+
+          <label class="ff-auth-label" for="ff-password">Password</label>
+          <input id="ff-password" name="password" class="ff-auth-input" type="password" autocomplete="new-password" required />
+          <div class="ff-auth-helper">minimum 8 characters</div>
+          <div id="ff-password-error" class="ff-auth-error" aria-live="polite"></div>
+
+          <div id="ff-form-error" class="ff-auth-error ff-auth-error-global" aria-live="polite"></div>
+          <div id="ff-form-success" class="ff-auth-success" aria-live="polite"></div>
+
+          <button id="ff-signup-button" class="ff-auth-button" type="submit">
+            <span class="ff-auth-button-text">Sign Up</span>
+            <span class="ff-auth-spinner" aria-hidden="true"></span>
+          </button>
+        </form>
+
+        <button id="ff-guest" class="ff-auth-link" type="button">Or continue as guest</button>
+
+        <div class="ff-auth-footer">
+          <button id="ff-go-login" class="ff-auth-link" type="button">Already have account? Log In</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -271,6 +271,92 @@ async function loadBusinessesProducts() {
   return validateBusinessesData(data);
 }
 
+async function getSupabasePublicConfig() {
+  return new Promise((resolve) => {
+    try {
+      chrome.storage.local.get(["ff_supabase_url", "ff_supabase_anon_key"], (items) => {
+        const url = String(items?.ff_supabase_url || "").trim();
+        const anonKey = String(items?.ff_supabase_anon_key || "").trim();
+        resolve({ url, anonKey });
+      });
+    } catch {
+      resolve({ url: "", anonKey: "" });
+    }
+  });
+}
+
+function formatUsdPrice(value) {
+  if (value === null || value === undefined || value === "") return "";
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return "";
+  return `$${n.toFixed(2)}`;
+}
+
+async function loadSupabaseProducts() {
+  const { url, anonKey } = await getSupabasePublicConfig();
+  if (!url || !anonKey) {
+    throw new Error("Supabase public config missing (ff_supabase_url / ff_supabase_anon_key)");
+  }
+
+  const baseUrl = url.replace(/\/$/, "");
+
+  // Use the Supabase PostgREST endpoint directly from the content script.
+  const endpoint = `${baseUrl}/rest/v1/products`;
+  const qs = new URLSearchParams({
+    select: [
+      "id",
+      "name",
+      "brand",
+      "category",
+      "price",
+      "rating",
+      "review_count",
+      "image_url",
+      "product_url",
+      "description",
+      "badges",
+      "amazon_keywords",
+      "amazon_categories"
+    ].join(","),
+    is_active: "eq.true"
+  });
+
+  const res = await fetch(`${endpoint}?${qs.toString()}`, {
+    method: "GET",
+    headers: {
+      apikey: anonKey,
+      Authorization: `Bearer ${anonKey}`,
+      Accept: "application/json"
+    }
+  });
+
+  if (!res.ok) {
+    throw new Error(`Supabase products fetch failed: ${res.status} ${res.statusText}`);
+  }
+
+  const rows = await res.json();
+  if (!Array.isArray(rows)) return [];
+
+  // Map snake_case DB columns to the existing in-extension schema.
+  return rows
+    .map((r) => ({
+      id: String(r?.id || "").trim(),
+      name: String(r?.name || "").trim(),
+      brand: String(r?.brand || "").trim(),
+      category: String(r?.category || "").trim(),
+      price: formatUsdPrice(r?.price),
+      rating: typeof r?.rating === "number" ? r.rating : Number(r?.rating || 0),
+      reviewCount: typeof r?.review_count === "number" ? r.review_count : Number(r?.review_count || 0),
+      imageUrl: r?.image_url ? String(r.image_url).trim() : "",
+      productUrl: r?.product_url ? String(r.product_url).trim() : "",
+      description: r?.description ? String(r.description) : "",
+      badges: Array.isArray(r?.badges) ? r.badges : [],
+      amazonKeywords: Array.isArray(r?.amazon_keywords) ? r.amazon_keywords : [],
+      amazonCategories: Array.isArray(r?.amazon_categories) ? r.amazon_categories : []
+    }))
+    .filter((p) => p.id && p.name && p.brand && p.category && p.productUrl);
+}
+
 let productDatabasePromise = null;
 
 let cachedAmazonInfo = null;
@@ -304,7 +390,32 @@ function onPossibleUrlChange() {
 
 function loadProductDatabase() {
   if (!productDatabasePromise) {
-    productDatabasePromise = loadBusinessesProducts();
+    productDatabasePromise = (async () => {
+      let cfg = { url: "", anonKey: "" };
+      try {
+        cfg = await getSupabasePublicConfig();
+      } catch {
+        cfg = { url: "", anonKey: "" };
+      }
+
+      console.log("🔧 FairFindz product DB load starting", {
+        hasSupabaseUrl: Boolean(cfg?.url),
+        hasSupabaseAnonKey: Boolean(cfg?.anonKey)
+      });
+
+      try {
+        const supabaseProducts = await loadSupabaseProducts();
+        if (Array.isArray(supabaseProducts) && supabaseProducts.length) {
+          console.log(`✅ Loaded ${supabaseProducts.length} products from Supabase`);
+          return supabaseProducts;
+        }
+        console.warn("⚠️ Supabase returned 0 products, falling back to businesses.json");
+      } catch (err) {
+        console.warn("⚠️ Supabase products load failed, falling back to businesses.json:", err?.message || err);
+      }
+
+      return loadBusinessesProducts();
+    })();
   }
   return productDatabasePromise;
 }
@@ -1171,6 +1282,7 @@ async function logProductPageStatus() {
 
       // UX: show a small toast 2 seconds after load if we found alternatives.
       // The toast auto-dismisses after 5 seconds and then the toolbar icon flashes.
+      maybePromptAuthOnceOnProductPage();
       window.setTimeout(() => {
         if (!isProductPage()) return;
         // Avoid showing stale toasts when Amazon navigates without a full reload.
@@ -1201,48 +1313,89 @@ chrome.runtime?.onMessage?.addListener((message) => {
   // Non-product pages: do nothing (silent) per UX requirements.
   if (!isProductPage()) return;
 
-  // Stop any flashing indicator when the user opens the modal.
-  sendBackgroundMessage({ type: "FAIRFINDZ_STOP_FLASHING" });
+  const openAlternativesModal = () => {
+    // Stop any flashing indicator when the user opens the modal.
+    sendBackgroundMessage({ type: "FAIRFINDZ_STOP_FLASHING" });
 
-  // If we already computed matches for this page, reuse them.
-  if (cachedAmazonInfo && Array.isArray(cachedMatches)) {
-    if (cachedUrl && cachedUrl !== window.location.href) return;
-    const currentAsin = extractAmazonAsinFromUrl(window.location.href);
-    if (cachedAsin && currentAsin && cachedAsin !== currentAsin) return;
-    if (cachedMatches.length === 0) return;
-    closeToast();
-    createModal({ amazonInfo: cachedAmazonInfo, matches: cachedMatches });
+    // If we already computed matches for this page, reuse them.
+    if (cachedAmazonInfo && Array.isArray(cachedMatches)) {
+      if (cachedUrl && cachedUrl !== window.location.href) return;
+      const currentAsin = extractAmazonAsinFromUrl(window.location.href);
+      if (cachedAsin && currentAsin && cachedAsin !== currentAsin) return;
+      closeToast();
+      createModal({ amazonInfo: cachedAmazonInfo, matches: cachedMatches });
+      return;
+    }
+
+    // Fallback: compute matches on demand.
+    (async () => {
+      try {
+        const products = await loadProductDatabase();
+
+        // If the user is already on a product that exists in our database,
+        // do not surface alternatives (even via icon click).
+        if (isCurrentAmazonProductInDatabase(products)) {
+          sendBackgroundMessage({ type: "FAIRFINDZ_STOP_FLASHING" });
+          sendBackgroundMessage({ type: "FAIRFINDZ_CLEAR_BADGE" });
+          closeToast();
+          return;
+        }
+
+        const amazonInfo = extractAmazonProduct();
+        cachedAmazonInfo = amazonInfo;
+        cachedUrl = window.location.href;
+        cachedAsin = extractAmazonAsinFromUrl(window.location.href);
+        const { top } = matchProducts(amazonInfo, products, { limit: 3 });
+        cachedMatches = top;
+        closeToast();
+        createModal({ amazonInfo, matches: Array.isArray(top) ? top : [] });
+      } catch (err) {
+        console.error("❌ Failed to open modal:", err);
+      }
+    })();
+  };
+
+  // Auth gate: if the user is not signed in and has not chosen guest mode,
+  // show the signup modal first.
+  const authApi = globalThis.FairFindzAuth;
+  if (authApi && typeof authApi.ensureAuthOrGuest === "function") {
+    authApi.ensureAuthOrGuest({
+      forcePrompt: true,
+      onAuthed: () => openAlternativesModal(),
+      onGuest: () => openAlternativesModal()
+    });
     return;
   }
 
-  // Fallback: compute matches on demand.
-  (async () => {
-    try {
-      const products = await loadProductDatabase();
-
-      // If the user is already on a product that exists in our database,
-      // do not surface alternatives (even via icon click).
-      if (isCurrentAmazonProductInDatabase(products)) {
-        sendBackgroundMessage({ type: "FAIRFINDZ_STOP_FLASHING" });
-        sendBackgroundMessage({ type: "FAIRFINDZ_CLEAR_BADGE" });
-        closeToast();
-        return;
-      }
-
-      const amazonInfo = extractAmazonProduct();
-      cachedAmazonInfo = amazonInfo;
-      cachedUrl = window.location.href;
-      cachedAsin = extractAmazonAsinFromUrl(window.location.href);
-      const { top } = matchProducts(amazonInfo, products, { limit: 3 });
-      cachedMatches = top;
-      if (!Array.isArray(top) || top.length === 0) return;
-      closeToast();
-      createModal({ amazonInfo, matches: top });
-    } catch (err) {
-      console.error("❌ Failed to open modal:", err);
-    }
-  })();
+  // If auth modal isn't available for some reason, fall back to current behavior.
+  openAlternativesModal();
 });
+
+// Prompt once on the first eligible product page visit (optional UX requirement).
+// We keep this lightweight: only show if the user is neither authenticated nor in guest mode
+// AND if we found alternatives.
+async function maybePromptAuthOnceOnProductPage() {
+  const authApi = globalThis.FairFindzAuth;
+  if (!authApi || typeof authApi.ensureAuthOrGuest !== "function" || typeof authApi.getAuthState !== "function") {
+    return;
+  }
+  if (!isProductPage()) return;
+
+  try {
+    const state = await authApi.getAuthState();
+    if (state.isAuthenticated || state.guest) return;
+  } catch {
+    return;
+  }
+
+  // Only prompt if there are alternatives available.
+  if (!Array.isArray(cachedMatches) || cachedMatches.length === 0) return;
+
+  // Do not force; only show once per user/device.
+  authApi.ensureAuthOrGuest({
+    forcePrompt: false
+  });
+}
 
 // Run once when the page loads.
 // Content scripts are usually injected after navigation, but DOM readiness can vary.

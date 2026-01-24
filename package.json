@@ -1,0 +1,11 @@
+{
+  "name": "fairfindz-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "import:products": "node scripts/import-products-to-supabase.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.3"
+  }
+}
