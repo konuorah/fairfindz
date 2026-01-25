@@ -13,7 +13,7 @@
         <h2 id="ff-auth-title" class="ff-auth-title">Welcome to FairFindz! 🎯</h2>
         <p class="ff-auth-subtitle">Create an account below to discover Black-owned alternatives while you shop on Amazon</p>
 
-        <form id="ff-signup-form" class="ff-auth-form" novalidate>
+        <form id="ff-auth-form" class="ff-auth-form" novalidate>
           <label class="ff-auth-label" for="ff-email">Email</label>
           <input id="ff-email" name="email" class="ff-auth-input" type="email" autocomplete="email" required />
           <div id="ff-email-error" class="ff-auth-error" aria-live="polite"></div>
@@ -26,7 +26,7 @@
           <div id="ff-form-error" class="ff-auth-error ff-auth-error-global" aria-live="polite"></div>
           <div id="ff-form-success" class="ff-auth-success" aria-live="polite"></div>
 
-          <button id="ff-signup-button" class="ff-auth-button" type="submit">
+          <button id="ff-submit" class="ff-auth-button" type="submit">
             <span class="ff-auth-button-text">Sign Up</span>
             <span class="ff-auth-spinner" aria-hidden="true"></span>
           </button>
@@ -36,6 +36,7 @@
 
         <div class="ff-auth-footer">
           <button id="ff-go-login" class="ff-auth-link" type="button">Already have account? Log In</button>
+          <button id="ff-go-signup" class="ff-auth-link" type="button" style="display:none">Need an account? Sign Up</button>
         </div>
       </div>
     </div>

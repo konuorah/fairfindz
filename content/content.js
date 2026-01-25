@@ -720,13 +720,6 @@ function matchProducts(amazonInfo, products, { limit = 3 } = {}) {
     });
 
   const top = scored.slice(0, limit);
-  if (top.length >= 2) {
-    const a = top[0];
-    const b = top[1];
-    if (a.score >= b.score + 40 || a.keywordMatches >= b.keywordMatches + 2) {
-      return { top: [a], scored };
-    }
-  }
   return { top, scored };
 }
 

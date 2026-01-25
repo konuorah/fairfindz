@@ -100,7 +100,7 @@
     buttonEl.classList.toggle("ff-auth-loading", Boolean(isLoading));
 
     const textEl = buttonEl.querySelector(".ff-auth-button-text");
-    if (textEl) textEl.textContent = isLoading ? "Signing up..." : "Sign Up";
+    if (textEl && isLoading) textEl.textContent = "Working...";
   }
 
   function focusFirstFocusable(container) {
@@ -141,6 +141,38 @@
     return json;
   }
 
+  async function supabaseSignIn({ email, password }) {
+    const { url, anonKey } = await getSupabaseConfig();
+
+    if (!url || !anonKey) {
+      throw new Error(
+        "Supabase is not configured yet. Set ff_supabase_url and ff_supabase_anon_key in chrome.storage.local."
+      );
+    }
+
+    const endpoint = `${url.replace(/\/$/, "")}/auth/v1/token?grant_type=password`;
+
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const message = json?.msg || json?.message || json?.error_description || json?.error || res.statusText;
+      throw new Error(message);
+    }
+
+    // Supabase returns { access_token, refresh_token, expires_in, token_type, user }
+    // Keep the shape consistent with our stored session expectation.
+    return json;
+  }
+
   async function loadAuthModalHtml() {
     const url = chrome.runtime.getURL("content/auth-modal.html");
     const res = await fetch(url);
@@ -168,16 +200,18 @@
 
     const modal = overlay.querySelector(".ff-auth-modal");
     const closeBtn = overlay.querySelector(".ff-auth-close");
-    const form = overlay.querySelector("#ff-signup-form");
+    const form = overlay.querySelector("#ff-auth-form");
     const emailInput = overlay.querySelector("#ff-email");
     const passwordInput = overlay.querySelector("#ff-password");
     const emailError = overlay.querySelector("#ff-email-error");
     const passwordError = overlay.querySelector("#ff-password-error");
     const formError = overlay.querySelector("#ff-form-error");
     const formSuccess = overlay.querySelector("#ff-form-success");
-    const submitBtn = overlay.querySelector("#ff-signup-button");
+    const submitBtn = overlay.querySelector("#ff-submit");
     const guestBtn = overlay.querySelector("#ff-guest");
     const goLoginBtn = overlay.querySelector("#ff-go-login");
+    const goSignupBtn = overlay.querySelector("#ff-go-signup");
+    const titleEl = overlay.querySelector("#ff-auth-title");
 
     const closeModal = async ({ markSeen = true } = {}) => {
       if (markSeen) await markAuthPromptSeen();
@@ -189,6 +223,27 @@
       if (passwordError) passwordError.textContent = "";
       if (formError) formError.textContent = "";
       if (formSuccess) formSuccess.textContent = "";
+    };
+
+    let mode = "signup"; // 'signup' | 'login'
+
+    const setMode = (nextMode) => {
+      mode = nextMode === "login" ? "login" : "signup";
+      clearMessages();
+
+      if (titleEl) {
+        titleEl.textContent = mode === "login" ? "Welcome back! 🎯" : "Welcome to FairFindz! 🎯";
+      }
+
+      if (passwordInput) {
+        passwordInput.setAttribute("autocomplete", mode === "login" ? "current-password" : "new-password");
+      }
+
+      const textEl = submitBtn?.querySelector?.(".ff-auth-button-text");
+      if (textEl) textEl.textContent = mode === "login" ? "Log In" : "Sign Up";
+
+      if (goLoginBtn) goLoginBtn.style.display = mode === "signup" ? "inline" : "none";
+      if (goSignupBtn) goSignupBtn.style.display = mode === "login" ? "inline" : "none";
     };
 
     const validate = () => {
@@ -240,9 +295,12 @@
     goLoginBtn?.addEventListener("click", async () => {
       await markAuthPromptSeen();
       onGoLogin?.();
-      // Login modal is a later ticket.
-      const globalErr = overlay.querySelector("#ff-form-error");
-      if (globalErr) globalErr.textContent = "Login coming next. For now, please sign up or continue as guest.";
+      setMode("login");
+    });
+
+    goSignupBtn?.addEventListener("click", async () => {
+      await markAuthPromptSeen();
+      setMode("signup");
     });
 
     form?.addEventListener("submit", async (e) => {
@@ -254,31 +312,46 @@
       clearMessages();
 
       try {
-        const result = await supabaseSignUp({ email, password });
-
-        const session = result?.session || null;
-        if (session) {
+        if (mode === "login") {
+          const session = await supabaseSignIn({ email, password });
           await saveSession(session);
-          if (formSuccess) formSuccess.textContent = "Welcome! Account created";
+          if (formSuccess) formSuccess.textContent = "Welcome back!";
           await markAuthPromptSeen();
           setTimeout(async () => {
             removeExistingAuthModal();
             onAuthed?.(session);
-          }, 2000);
+          }, 500);
         } else {
-          // This usually means email confirmation is enabled in Supabase.
-          if (formSuccess) {
-            formSuccess.textContent = "Account created! Please check your email to confirm, then log in.";
+          const result = await supabaseSignUp({ email, password });
+          const session = result?.session || null;
+          if (session) {
+            await saveSession(session);
+            if (formSuccess) formSuccess.textContent = "Welcome! Account created";
+            await markAuthPromptSeen();
+            setTimeout(async () => {
+              removeExistingAuthModal();
+              onAuthed?.(session);
+            }, 500);
+          } else {
+            // With email confirmation OFF, this should be rare. Keep a helpful message.
+            if (formSuccess) {
+              formSuccess.textContent = "Account created. Please log in.";
+            }
+            await markAuthPromptSeen();
+            setMode("login");
           }
-          await markAuthPromptSeen();
         }
       } catch (err) {
         const msg = normalizeErrorMessage(err?.message || String(err));
         if (formError) formError.textContent = msg;
       } finally {
         setLoading(submitBtn, false);
+        setMode(mode);
       }
     });
+
+    // Initialize in signup mode.
+    setMode("signup");
 
     // Initial focus
     if (modal) {
