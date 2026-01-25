@@ -6,6 +6,11 @@
  * - https://www.amazon.com/gp/product/B08N5WRWNW
  * - https://www.amazon.com/Some-Product-Name/dp/B08N5WRWNW
  */
+try {
+  globalThis.FairFindzContentScriptLoaded = true;
+  globalThis.FairFindzContentScriptInjecting = false;
+} catch {}
+
 function isProductPage(urlString = window.location.href, { detectCategory = false } = {}) {
   let url;
 
@@ -1057,44 +1062,51 @@ function detectCartActions() {
  * - We do NOT implement close behavior yet (next user story).
  */
 function createModal({ amazonInfo, matches } = {}) {
-  if (modalInitialized) return;
-  modalInitialized = true;
-
-  // If the overlay already exists (e.g., due to SPA navigation), don't add another.
   if (document.getElementById("bbd-modal-overlay")) return;
 
-  const overlay = document.createElement("div");
-  overlay.id = "bbd-modal-overlay";
-  overlay.className = "bbd-modal-overlay";
+  if (modalInitialized) {
+    console.warn("⚠️ FairFindz: modalInitialized=true but overlay missing; resetting");
+    modalInitialized = false;
+  }
 
-  const container = document.createElement("div");
-  container.className = "bbd-modal-container";
-  container.setAttribute("role", "dialog");
-  container.setAttribute("aria-modal", "true");
+  modalInitialized = true;
 
-  const category = amazonInfo?.category || getProductCategory();
-  const footerInfoText =
-    category && category !== "unknown"
-      ? `💡 Supporting Black-owned businesses in ${category}`
-      : "💡 Supporting Black-owned businesses";
+  try {
+    const overlay = document.createElement("div");
+    overlay.id = "bbd-modal-overlay";
+    overlay.className = "bbd-modal-overlay";
 
-  const items = Array.isArray(matches) ? matches : [];
+    const container = document.createElement("div");
+    container.className = "bbd-modal-container";
+    container.setAttribute("role", "dialog");
+    container.setAttribute("aria-modal", "true");
 
-  const productCardsHtml = items.length
-    ? items
-      .map(({ product }) => {
-        const imageSrc = escapeHtmlAttr(product.imageUrl || "");
-        const fallbackSrc = escapeHtmlAttr(getImageFallbackDataUrl());
-        const productUrlAttr = escapeHtmlAttr(product.productUrl || "");
-        const badges = Array.isArray(product.badges) && product.badges.length
-          ? product.badges.map((b) => `<span class="bbd-product-badge">🏷️ ${b}</span>`).join(" ")
-          : "";
+    const category = amazonInfo?.category || getProductCategory();
+    const footerInfoText =
+      category && category !== "unknown"
+        ? `💡 Supporting Black-owned businesses in ${category}`
+        : "💡 Supporting Black-owned businesses";
 
-        const priceText = escapeHtmlAttr(product.price || "");
-        const ratingText = renderStarsHtml(typeof product.rating === "number" ? product.rating : Number(product.rating || 0));
-        const reviewCountText = typeof product.reviewCount === "number" ? product.reviewCount : Number(product.reviewCount || 0);
+    const items = Array.isArray(matches) ? matches : [];
 
-        return `
+    const productCardsHtml = items.length
+      ? items
+          .map(({ product }) => {
+            const imageSrc = escapeHtmlAttr(product.imageUrl || "");
+            const fallbackSrc = escapeHtmlAttr(getImageFallbackDataUrl());
+            const productUrlAttr = escapeHtmlAttr(product.productUrl || "");
+            const badges = Array.isArray(product.badges) && product.badges.length
+              ? product.badges.map((b) => `<span class="bbd-product-badge">🏷️ ${b}</span>`).join(" ")
+              : "";
+
+            const priceText = escapeHtmlAttr(product.price || "");
+            const ratingText = renderStarsHtml(
+              typeof product.rating === "number" ? product.rating : Number(product.rating || 0)
+            );
+            const reviewCountText =
+              typeof product.reviewCount === "number" ? product.reviewCount : Number(product.reviewCount || 0);
+
+            return `
           <div class="bbd-product-card">
             <img
               class="bbd-product-image"
@@ -1122,9 +1134,9 @@ function createModal({ amazonInfo, matches } = {}) {
             </div>
           </div>
         `;
-      })
-      .join("")
-    : `
+          })
+          .join("")
+      : `
         <div class="bbd-product-card">
           <div class="bbd-product-info">
             <div class="bbd-product-title">No Black-owned alternatives found</div>
@@ -1133,7 +1145,7 @@ function createModal({ amazonInfo, matches } = {}) {
         </div>
       `;
 
-  container.innerHTML = `
+    container.innerHTML = `
     <div class="bbd-modal-header">
       <div class="bbd-modal-header-left">
         <div class="bbd-modal-icon" aria-hidden="true">🎯</div>
@@ -1156,73 +1168,66 @@ function createModal({ amazonInfo, matches } = {}) {
     </div>
   `;
 
-  overlay.appendChild(container);
+    overlay.appendChild(container);
 
-  // Append at the end of <body> so it sits above the page.
-  // We avoid touching Amazon's existing DOM structure.
-  document.body.appendChild(overlay);
+    document.body.appendChild(overlay);
 
-  hydrateModalProductImages(overlay);
-
-  // MVP: use hardcoded price/rating/review counts from businesses.json
-  // (no live hydration).
-
-  // Trigger entrance animation.
-  // We add the element in its initial hidden state, then on the next frame
-  // we add the class that transitions it to the visible state.
-  window.requestAnimationFrame(() => {
     overlay.classList.add("bbd-modal-show");
-  });
 
-  const closeModal = () => {
-    const existingOverlay = document.getElementById("bbd-modal-overlay");
-    if (!existingOverlay) return;
+    hydrateModalProductImages(overlay);
 
-    // If we're already closing, do nothing.
-    if (existingOverlay.classList.contains("bbd-modal-hide")) return;
+    window.requestAnimationFrame(() => {
+      overlay.classList.add("bbd-modal-show");
+    });
 
-    // Exit animation: remove the visible class and add the hide class
-    // (hide class uses a faster duration and ease-in).
-    existingOverlay.classList.add("bbd-modal-hide");
-    existingOverlay.classList.remove("bbd-modal-show");
+    const closeModal = () => {
+      const existingOverlay = document.getElementById("bbd-modal-overlay");
+      if (!existingOverlay) return;
 
-    const containerEl = existingOverlay.querySelector(".bbd-modal-container");
-    const onDone = () => {
-      existingOverlay.remove();
-      modalInitialized = false;
+      if (existingOverlay.classList.contains("bbd-modal-hide")) return;
+
+      existingOverlay.classList.add("bbd-modal-hide");
+      existingOverlay.classList.remove("bbd-modal-show");
+
+      const containerEl = existingOverlay.querySelector(".bbd-modal-container");
+      const onDone = () => {
+        existingOverlay.remove();
+        modalInitialized = false;
+      };
+
+      if (containerEl) {
+        containerEl.addEventListener("transitionend", onDone, { once: true });
+      } else {
+        window.setTimeout(onDone, 220);
+      }
     };
 
-    // Clean up after the container finishes its transition (most reliable signal).
-    if (containerEl) {
-      containerEl.addEventListener("transitionend", onDone, { once: true });
-    } else {
-      // Fallback: remove after exit duration.
-      window.setTimeout(onDone, 220);
-    }
-  };
+    const closeBtn = overlay.querySelector(".bbd-modal-close");
+    closeBtn?.addEventListener("click", closeModal);
 
-  const closeBtn = overlay.querySelector(".bbd-modal-close");
-  closeBtn?.addEventListener("click", closeModal);
+    const productCtaButtons = overlay.querySelectorAll(".bbd-product-cta-button");
+    productCtaButtons.forEach((btn) => {
+      btn.addEventListener("click", function () {
+        const url = this.getAttribute("data-product-url");
 
-  const productCtaButtons = overlay.querySelectorAll(".bbd-product-cta-button");
-  productCtaButtons.forEach((btn) => {
-    btn.addEventListener("click", function () {
-      const url = this.getAttribute("data-product-url");
+        if (!url || !isValidAmazonProductUrl(url)) {
+          console.error("❌ Invalid product URL:", url);
+          return;
+        }
 
-      if (!url || !isValidAmazonProductUrl(url)) {
-        console.error("❌ Invalid product URL:", url);
-        return;
-      }
+        this.textContent = "Opening...";
+        this.disabled = true;
 
-      this.textContent = "Opening...";
-      this.disabled = true;
-
-      window.open(url, "_blank", "noopener,noreferrer");
-      setTimeout(() => {
-        closeModal();
-      }, 500);
+        window.open(url, "_blank", "noopener,noreferrer");
+        setTimeout(() => {
+          closeModal();
+        }, 500);
+      });
     });
-  });
+  } catch (err) {
+    modalInitialized = false;
+    console.error("❌ FairFindz: createModal failed", err);
+  }
 }
 
 async function logProductPageStatus() {
@@ -1303,8 +1308,15 @@ chrome.runtime?.onMessage?.addListener((message) => {
   if (!message || typeof message !== "object") return;
   if (message.type !== "FAIRFINDZ_SHOW_MODAL") return;
 
+  console.log("📩 FairFindz received FAIRFINDZ_SHOW_MODAL", { href: window.location.href });
+
+  const forceOpen = Boolean(message.force);
+
   // Non-product pages: do nothing (silent) per UX requirements.
-  if (!isProductPage()) return;
+  if (!isProductPage()) {
+    console.log("ℹ️ FairFindz: isProductPage() is false; not opening modal", { href: window.location.href });
+    return;
+  }
 
   const openAlternativesModal = () => {
     // Stop any flashing indicator when the user opens the modal.
@@ -1312,12 +1324,22 @@ chrome.runtime?.onMessage?.addListener((message) => {
 
     // If we already computed matches for this page, reuse them.
     if (cachedAmazonInfo && Array.isArray(cachedMatches)) {
-      if (cachedUrl && cachedUrl !== window.location.href) return;
-      const currentAsin = extractAmazonAsinFromUrl(window.location.href);
-      if (cachedAsin && currentAsin && cachedAsin !== currentAsin) return;
-      closeToast();
-      createModal({ amazonInfo: cachedAmazonInfo, matches: cachedMatches });
-      return;
+      const currentHref = window.location.href;
+      const currentAsin = extractAmazonAsinFromUrl(currentHref);
+
+      // If the user navigated (Amazon SPA), our cached matches may be for a different page.
+      // Do not no-op; clear cache and recompute below.
+      if (cachedUrl && cachedUrl !== currentHref) {
+        cachedAmazonInfo = null;
+        cachedMatches = null;
+      } else if (cachedAsin && currentAsin && cachedAsin !== currentAsin) {
+        cachedAmazonInfo = null;
+        cachedMatches = null;
+      } else {
+        closeToast();
+        createModal({ amazonInfo: cachedAmazonInfo, matches: cachedMatches });
+        return;
+      }
     }
 
     // Fallback: compute matches on demand.
@@ -1327,7 +1349,7 @@ chrome.runtime?.onMessage?.addListener((message) => {
 
         // If the user is already on a product that exists in our database,
         // do not surface alternatives (even via icon click).
-        if (isCurrentAmazonProductInDatabase(products)) {
+        if (!forceOpen && isCurrentAmazonProductInDatabase(products)) {
           sendBackgroundMessage({ type: "FAIRFINDZ_STOP_FLASHING" });
           sendBackgroundMessage({ type: "FAIRFINDZ_CLEAR_BADGE" });
           closeToast();
@@ -1351,6 +1373,10 @@ chrome.runtime?.onMessage?.addListener((message) => {
   // Auth gate: if the user is not signed in and has not chosen guest mode,
   // show the signup modal first.
   const authApi = globalThis.FairFindzAuth;
+  if (forceOpen) {
+    openAlternativesModal();
+    return;
+  }
   if (authApi && typeof authApi.ensureAuthOrGuest === "function") {
     authApi.ensureAuthOrGuest({
       forcePrompt: true,

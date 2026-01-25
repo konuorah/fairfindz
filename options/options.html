@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FairFindz Settings</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      body {
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
+          "Segoe UI Emoji";
+        margin: 0;
+        background: #ffffff;
+        color: #0f172a;
+      }
+      .wrap {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 32px 20px;
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0 0 16px;
+      }
+      p {
+        margin: 0 0 20px;
+        color: #334155;
+        line-height: 1.5;
+      }
+      .card {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px;
+        background: #ffffff;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #475569;
+        margin: 12px 0 6px;
+      }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 14px;
+        outline: none;
+      }
+      input:focus {
+        border-color: #0f172a;
+        box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.12);
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+      button {
+        appearance: none;
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .primary {
+        background: #0f172a;
+        color: #ffffff;
+      }
+      .secondary {
+        background: #f1f5f9;
+        color: #0f172a;
+      }
+      .status {
+        margin-top: 14px;
+        font-size: 13px;
+        color: #334155;
+      }
+      .hint {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 10px;
+        line-height: 1.4;
+      }
+      code {
+        background: #f1f5f9;
+        border-radius: 6px;
+        padding: 2px 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>FairFindz Settings</h1>
+      <p>Set your Supabase public URL and anon key so the extension can load products and authenticate users.</p>
+
+      <div class="card">
+        <label for="supabaseUrl">Supabase Project URL</label>
+        <input id="supabaseUrl" type="url" placeholder="https://xxxxxxxxxxxxx.supabase.co" autocomplete="off" />
+
+        <label for="supabaseAnonKey">Supabase Anon Public Key</label>
+        <input id="supabaseAnonKey" type="password" placeholder="eyJhbGciOi..." autocomplete="off" />
+
+        <div class="row">
+          <button id="save" class="primary" type="button">Save</button>
+          <button id="test" class="secondary" type="button">Test Connection</button>
+          <button id="clear" class="secondary" type="button">Clear</button>
+        </div>
+
+        <div id="status" class="status"></div>
+        <div class="hint">
+          The extension stores these values in <code>chrome.storage.local</code> as
+          <code>ff_supabase_url</code> and <code>ff_supabase_anon_key</code>.
+        </div>
+      </div>
+    </div>
+
+    <script src="options.js"></script>
+  </body>
+</html>

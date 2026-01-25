@@ -1,16 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "Black-Owned Business Discovery",
+  "name": "Fair Findz",
   "version": "0.1.0",
   "description": "Discover Black-owned alternatives while shopping",
-  "permissions": ["storage", "activeTab", "tabs"],
+  "permissions": ["storage", "activeTab", "tabs", "scripting"],
   "host_permissions": [
     "*://*.amazon.com/*",
-    "https://mlxcrnhlgdwphfxkakok.supabase.co/*"
+    "https://*.supabase.co/*"
   ],
   "action": {
     "default_title": "View Black-owned alternatives"
   },
+  "options_page": "options/options.html",
   "background": {
     "service_worker": "background/service-worker.js"
   },

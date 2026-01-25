@@ -6,6 +6,72 @@ if (!chromeApi) {
 
 const actionApi = chromeApi && (chromeApi.action || chromeApi.browserAction);
 
+function isMissingReceiverError(err) {
+  const msg = String(err?.message || err || "").toLowerCase();
+  return (
+    msg.includes("receiving end does not exist") ||
+    msg.includes("could not establish connection")
+  );
+}
+
+function isNoResponsePortClosedError(err) {
+  const msg = String(err?.message || err || "").toLowerCase();
+  return msg.includes("the message port closed") && msg.includes("before a response was received");
+}
+
+async function ensureContentScriptsInjected(tabId) {
+  const scripting = chromeApi?.scripting;
+  if (!scripting || !tabId) return;
+
+  let shouldInject = true;
+  try {
+    const result = await scripting.executeScript({
+      target: { tabId },
+      world: "ISOLATED",
+      func: () => {
+        try {
+          const g = globalThis;
+          if (g.FairFindzContentScriptLoaded) return { shouldInject: false, reason: "already_loaded" };
+          if (g.FairFindzContentScriptInjecting) return { shouldInject: false, reason: "inject_in_progress" };
+          g.FairFindzContentScriptInjecting = true;
+          return { shouldInject: true, reason: "not_loaded" };
+        } catch {
+          return { shouldInject: true, reason: "marker_check_failed" };
+        }
+      }
+    });
+    const payload = Array.isArray(result) ? result[0]?.result : null;
+    if (payload && typeof payload === "object" && payload.shouldInject === false) {
+      shouldInject = false;
+    }
+  } catch {
+    // If marker checks fail for any reason, proceed with injection.
+    shouldInject = true;
+  }
+
+  if (!shouldInject) return;
+
+  if (typeof scripting.insertCSS === "function") {
+    try {
+      const p = scripting.insertCSS({ target: { tabId }, files: ["content/content.css", "content/auth-modal.css"] });
+      if (p && typeof p.catch === "function") await p;
+    } catch {
+    }
+  }
+
+  if (typeof scripting.executeScript === "function") {
+    try {
+      const p = scripting.executeScript({
+        target: { tabId },
+        world: "ISOLATED",
+        files: ["content/auth-modal.js", "content/content.js"]
+      });
+      if (p && typeof p.catch === "function") await p;
+    } catch {
+    }
+  }
+}
+
 function swallowNoTabError(tabId, err) {
   const msg = String(err?.message || err || "");
   if (msg.toLowerCase().includes("no tab with id")) {
@@ -434,13 +500,41 @@ function extractPriceFromHtml(html) {
 function safeTabsSendMessage(tabId, message) {
   if (!chromeApi || !chromeApi.tabs || !chromeApi.tabs.sendMessage) return Promise.resolve();
   try {
-    const p = chromeApi.tabs.sendMessage(tabId, message);
-    if (p && typeof p.catch === "function") {
-      return p.catch((err) => {
+    return new Promise((resolve, reject) => {
+      try {
+        const maybePromise = chromeApi.tabs.sendMessage(tabId, message, (response) => {
+          const err = chromeApi.runtime?.lastError;
+          if (err) {
+            if (isNoResponsePortClosedError(err)) {
+              resolve();
+              return;
+            }
+            swallowNoTabError(tabId, err);
+            reject(err);
+            return;
+          }
+          resolve(response);
+        });
+
+        if (maybePromise && typeof maybePromise.then === "function") {
+          maybePromise.then(resolve).catch((err) => {
+            if (isNoResponsePortClosedError(err)) {
+              resolve();
+              return;
+            }
+            swallowNoTabError(tabId, err);
+            reject(err);
+          });
+        }
+      } catch (err) {
+        if (isNoResponsePortClosedError(err)) {
+          resolve();
+          return;
+        }
         swallowNoTabError(tabId, err);
-      });
-    }
-    return Promise.resolve();
+        reject(err);
+      }
+    });
   } catch (err) {
     swallowNoTabError(tabId, err);
     return Promise.resolve();
@@ -452,9 +546,27 @@ if (actionApi && actionApi.onClicked && actionApi.onClicked.addListener) {
     const tabId = tab && tab.id;
     if (!tabId) return;
 
+    const tabUrl = tab?.url || "";
+    if (!isAmazonUrl(tabUrl)) {
+      return;
+    }
+
     try {
-      await safeTabsSendMessage(tabId, { type: "FAIRFINDZ_SHOW_MODAL" });
+      console.log("🔘 FairFindz action clicked", { tabId, url: tabUrl || null });
+      await safeTabsSendMessage(tabId, { type: "FAIRFINDZ_SHOW_MODAL", force: true, trigger: "action" });
+      console.log("📨 FairFindz sent FAIRFINDZ_SHOW_MODAL", { tabId });
     } catch (err) {
+      console.warn("⚠️ FairFindz failed to send FAIRFINDZ_SHOW_MODAL", { tabId, err: err?.message || err });
+
+      if (isMissingReceiverError(err)) {
+        await ensureContentScriptsInjected(tabId);
+        try {
+          await safeTabsSendMessage(tabId, { type: "FAIRFINDZ_SHOW_MODAL", force: true, trigger: "action" });
+          console.log("📨 FairFindz resent FAIRFINDZ_SHOW_MODAL after inject", { tabId });
+        } catch (err2) {
+          console.warn("⚠️ FairFindz resend failed after inject", { tabId, err: err2?.message || err2 });
+        }
+      }
       // Content script may not be injected/ready (non-product page, restricted page, etc.)
       // Keep silent per UX requirements.
     }
