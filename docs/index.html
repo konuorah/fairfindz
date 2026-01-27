@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FairFindz</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <div class="brand">
+          <div class="logo">FF</div>
+          <div class="brand-text">
+            <div class="brand-name">FairFindz</div>
+            <div class="brand-tagline">Discover better alternatives while you shop.</div>
+          </div>
+        </div>
+        <nav class="nav">
+          <a href="./privacy.html">Privacy Policy</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container main">
+      <section class="hero hero-grid">
+        <div class="hero-copy">
+          <div class="pill">Chrome Extension</div>
+          <h1>Discover alternative brands while you shop.</h1>
+          <p>
+            FairFindz shows relevant alternatives directly on supported product pages, so you can compare options
+            without leaving your tab.
+          </p>
+          <div class="cta-row">
+            <a class="button" href="./privacy.html">View Privacy Policy</a>
+            <a class="button button-secondary" href="mailto:fairfindz@gmail.com">Contact Support</a>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-label="FairFindz preview">
+          <div class="mock-window">
+            <div class="mock-topbar">
+              <div class="mock-dots">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </div>
+              <div class="mock-pill">FairFindz</div>
+              <div class="mock-spacer"></div>
+            </div>
+            <div class="mock-content">
+              <div class="mock-card">
+                <div class="mock-thumb"></div>
+                <div class="mock-lines">
+                  <div class="line w-80"></div>
+                  <div class="line w-55"></div>
+                  <div class="line w-35"></div>
+                </div>
+              </div>
+              <div class="mock-card">
+                <div class="mock-thumb"></div>
+                <div class="mock-lines">
+                  <div class="line w-75"></div>
+                  <div class="line w-60"></div>
+                  <div class="line w-30"></div>
+                </div>
+              </div>
+              <div class="mock-cta">Shop These Alternatives →</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Support</h2>
+        <p>
+          For help, contact: <a href="mailto:fairfindz@gmail.com">fairfindz@gmail.com</a>
+        </p>
+      </section>
+
+      <footer class="footer">
+        <div>© <span id="year"></span> FairFindz</div>
+        <div><a href="./privacy.html">Privacy Policy</a></div>
+      </footer>
+    </main>
+
+    <script>
+      document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+  </body>
+</html>
