@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to FairFindz</title>
+    <link rel="stylesheet" href="./welcome.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="header">
+        <div class="brand" aria-label="FairFindz">
+          <img
+            class="brand-logo"
+            src="../assets/fairfindz-logo.png"
+            alt="FairFindz"
+            onerror="this.style.display='none'"
+          />
+          <div class="brand-fallback" aria-hidden="true">
+            <span class="brand-fair">Fair</span><span class="brand-findz">Findz</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="card">
+        <div class="steps" id="steps">
+          <section class="step is-active" data-step="1">
+            <div class="step-grid">
+              <div class="copy">
+                <h1>Welcome</h1>
+                <p>Thanks for installing FairFindz.</p>
+                <p class="lead">Discover minority-owned alternatives while shopping on Amazon.</p>
+                <div class="actions">
+                  <button class="button" data-action="continue">Continue</button>
+                </div>
+                <a class="skip" href="#" data-action="skip">Skip step</a>
+              </div>
+              <div class="visual">
+                <div class="media" aria-hidden="true">
+                  <div class="welcome-art">
+                    <div class="welcome-art-title">
+                      Discover <span class="accent">alternative brands</span>
+                      <br />
+                      while you shop
+                    </div>
+                  </div>
+                </div>
+                <img
+                  class="welcome-graphic"
+                  src="../assets/welcome-graphic.png"
+                  alt="FairFindz onboarding"
+                  onerror="this.style.display='none'"
+                />
+              </div>
+            </div>
+          </section>
+
+          <section class="step" data-step="2">
+            <div class="step-grid">
+              <div class="copy">
+                <h1>Shop Fairer. Support diverse-owned brands.</h1>
+                <p class="lead">
+                  FairFindz helps you discover ethical, diverse-owned alternatives while you shop online — automatically.
+                </p>
+                <div class="actions">
+                  <button class="button" data-action="continue">Continue</button>
+                </div>
+                <a class="skip" href="#" data-action="skip">Skip step</a>
+              </div>
+              <div class="visual">
+                <div class="browser-frame" aria-hidden="true">
+                  <div class="browser-top">
+                    <div class="browser-controls">
+                      <span class="browser-dot"></span>
+                      <span class="browser-dot"></span>
+                      <span class="browser-dot"></span>
+                    </div>
+                    <div class="browser-bar"></div>
+                  </div>
+
+                  <div class="browser-body">
+                    <div class="feature-grid">
+                      <div class="feature">
+                        <div class="feature-icon" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 7h15l-2 8H8L6 7Z" stroke="currentColor" stroke-width="1.6" />
+                            <path d="M6 7 5 3H2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                            <circle cx="9" cy="19" r="1.5" fill="currentColor" />
+                            <circle cx="17" cy="19" r="1.5" fill="currentColor" />
+                          </svg>
+                        </div>
+                        <div class="feature-title">Shop your way</div>
+                      </div>
+
+                      <div class="feature">
+                        <div class="feature-icon" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.6" />
+                            <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                          </svg>
+                        </div>
+                        <div class="feature-title">Discover new brands</div>
+                      </div>
+
+                      <div class="feature">
+                        <div class="feature-icon" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 14.5h6.2c.6 0 1.2.2 1.7.5l1.1.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M14 16l3.2-2c.9-.6 2.1-.3 2.6.6.5.9.2 2.1-.7 2.6l-4.1 2.3c-.6.3-1.2.5-1.9.5H9.3c-.7 0-1.3-.2-1.9-.5L4 18.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M13.7 10.2c.7-.7 1.8-.7 2.5 0l.6.6.6-.6c.7-.7 1.8-.7 2.5 0s.7 1.8 0 2.5l-3.1 3.1-3.1-3.1c-.7-.7-.7-1.8 0-2.5Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+                          </svg>
+                        </div>
+                        <div class="feature-title">Support Minority Owned</div>
+                      </div>
+
+                      <div class="feature">
+                        <div class="feature-icon" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 4h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.6" />
+                            <path d="M10 7h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                            <path d="M9 17h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                          </svg>
+                        </div>
+                        <div class="feature-title">Share with Friends</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="step" data-step="3">
+            <div class="step-grid">
+              <div class="copy">
+                <h1>Shop Amazon like your normally do</h1>
+                <p class="lead">
+                  When you’re on a product page, FairFindz quietly checks for verified alternatives that align with your
+                  values.
+                </p>
+                <p class="lead">No searching. No switching tabs.</p>
+                <div class="actions">
+                  <button class="button" data-action="continue">Continue</button>
+                </div>
+                <a class="skip" href="#" data-action="skip">Skip step</a>
+              </div>
+              <div class="visual">
+                <div class="browser-frame is-amazon" aria-hidden="true">
+                  <div class="browser-top">
+                    <div class="browser-controls">
+                      <span class="browser-dot"></span>
+                      <span class="browser-dot"></span>
+                      <span class="browser-dot"></span>
+                    </div>
+                    <div class="browser-bar">www.amazon.com</div>
+                  </div>
+
+                  <div class="browser-body amazon-body">
+                    <div class="amazon-hero">
+                      <div class="amazon-thumb" aria-hidden="true"></div>
+                      <div class="amazon-lines" aria-hidden="true">
+                        <div class="amazon-line w80"></div>
+                        <div class="amazon-line w60"></div>
+                        <div class="amazon-line w35"></div>
+                      </div>
+                    </div>
+
+                    <div class="ff-modal">
+                      <div class="ff-modal-top">
+                        <div class="ff-modal-title">Black-Owned Alternative Found!</div>
+                        <div class="ff-modal-x">×</div>
+                      </div>
+
+                      <div class="ff-card">
+                        <div class="ff-thumb" aria-hidden="true"></div>
+                        <div class="ff-info">
+                          <div class="ff-name">Coffee Uplifts People Honey Berry Mocha</div>
+                          <div class="ff-by">By: Coffee Uplifts People</div>
+                          <div class="ff-price">$15.99</div>
+                          <div class="ff-meta">
+                            <div class="ff-stars" aria-hidden="true">★★★★★</div>
+                            <div class="ff-reviews">(50)</div>
+                          </div>
+                          <div class="ff-chip">Black Owned</div>
+                          <div class="ff-cta">Shop This Alternative →</div>
+                        </div>
+                      </div>
+
+                      <div class="ff-card">
+                        <div class="ff-thumb" aria-hidden="true"></div>
+                        <div class="ff-info">
+                          <div class="ff-name">BLK &amp; Bold Medium Roast Coffee</div>
+                          <div class="ff-by">By: BLK &amp; Bold</div>
+                          <div class="ff-price">$28.99</div>
+                          <div class="ff-meta">
+                            <div class="ff-stars" aria-hidden="true">★★★★★</div>
+                            <div class="ff-reviews">(1,913)</div>
+                          </div>
+                          <div class="ff-cta">Shop This Alternative →</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="step" data-step="4">
+            <div class="step-grid">
+              <div class="copy">
+                <h1>You're always in control</h1>
+                <ul>
+                  <li>Only activates on shopping pages</li>
+                  <li>Never interrupts checkout</li>
+                  <li>You choose if and when to explore alternatives</li>
+                </ul>
+                <div class="actions">
+                  <button class="button" data-action="continue">Continue</button>
+                </div>
+                <a class="skip" href="#" data-action="skip">Skip step</a>
+              </div>
+              <div class="visual">
+                <div class="browser-frame" aria-hidden="true">
+                  <div class="browser-top">
+                    <div class="browser-controls">
+                      <span class="browser-dot"></span>
+                      <span class="browser-dot"></span>
+                      <span class="browser-dot"></span>
+                    </div>
+                    <div class="browser-bar"></div>
+                  </div>
+
+                  <div class="browser-body trust-body">
+                    <div class="trust-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M12 2 20 6v6c0 5-3.3 9.4-8 10-4.7-.6-8-5-8-10V6l8-4Z"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linejoin="round"
+                        />
+                        <path
+                          d="m8.2 12.2 2.3 2.3 5.3-5.3"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <div class="trust-caption">Trust + Control</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="step" data-step="5">
+            <div class="step-grid">
+              <div class="copy">
+                <h1>Every purchase is a vote</h1>
+                <p class="lead">
+                  FairFindz highlights brands owned by underrepresented founders — so your spending reflects what you care
+                  about.
+                </p>
+                <div class="actions">
+                  <button class="button" data-action="continue">Continue</button>
+                </div>
+                <a class="skip" href="#" data-action="skip">Skip step</a>
+              </div>
+              <div class="visual">
+                <div class="browser-frame" aria-hidden="true">
+                  <div class="browser-top">
+                    <div class="browser-controls">
+                      <span class="browser-dot"></span>
+                      <span class="browser-dot"></span>
+                      <span class="browser-dot"></span>
+                    </div>
+                    <div class="browser-bar"></div>
+                  </div>
+
+                  <div class="browser-body vote-body">
+                    <div class="vote-title">Ownership tags you’ll see</div>
+                    <div class="vote-tags">
+                      <div class="tag-chip">
+                        <span class="tag-dot black" aria-hidden="true"></span>
+                        Black-owned
+                      </div>
+                      <div class="tag-chip">
+                        <span class="tag-dot woman" aria-hidden="true"></span>
+                        Woman-owned
+                      </div>
+                      <div class="tag-chip">
+                        <span class="tag-dot veteran" aria-hidden="true"></span>
+                        Veteran-owned
+                      </div>
+                      <div class="tag-chip">
+                        <span class="tag-dot lgbtq" aria-hidden="true"></span>
+                        LGBTQ-owned
+                      </div>
+                    </div>
+                    <div class="vote-note">Look for these tags on alternative brands.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="step" data-step="6">
+            <div class="step-grid">
+              <div class="copy">
+                <h1>You’re all set.</h1>
+                <p class="lead">FairFindz will let you know when meaningful alternatives are available.</p>
+                <div class="actions">
+                  <button class="button" id="startShopping">Start shopping →</button>
+                </div>
+                <a class="skip" href="#" data-action="skip">Skip step</a>
+              </div>
+              <div class="visual">
+                <div class="media" aria-hidden="true"></div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <footer class="footer">
+          <nav class="stepper" id="progress" aria-label="Onboarding steps">
+            <button class="stepper-item is-active" data-go="1" aria-label="Welcome">Welcome</button>
+            <button class="stepper-item" data-go="2" aria-label="Introduction">Introduction</button>
+            <button class="stepper-item" data-go="3" aria-label="How It Works">How It Works</button>
+            <button class="stepper-item" data-go="4" aria-label="Trust + Control">Trust + Control</button>
+            <button class="stepper-item" data-go="5" aria-label="Vote With Your Dollars">Vote With Your Dollars</button>
+            <button class="stepper-item" data-go="6" aria-label="Shop">Shop</button>
+          </nav>
+        </footer>
+      </main>
+
+      <footer class="bottom">
+        <span>Support: <a class="link" href="mailto:fairfindz@gmail.com">fairfindz@gmail.com</a></span>
+      </footer>
+    </div>
+
+    <script src="./welcome.js"></script>
+  </body>
+</html>
