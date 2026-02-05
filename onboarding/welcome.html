@@ -12,9 +12,9 @@
         <div class="brand" aria-label="FairFindz">
           <img
             class="brand-logo"
-            src="../assets/fairfindz-logo.png"
+            src="../icons/icon48.png"
             alt="FairFindz"
-            onerror="this.style.display='none'"
+            data-fallback="hide"
           />
           <div class="brand-fallback" aria-hidden="true">
             <span class="brand-fair">Fair</span><span class="brand-findz">Findz</span>
@@ -49,7 +49,7 @@
                   class="welcome-graphic"
                   src="../assets/welcome-graphic.png"
                   alt="FairFindz onboarding"
-                  onerror="this.style.display='none'"
+                  data-fallback="hide"
                 />
               </div>
             </div>
@@ -130,7 +130,7 @@
             </div>
           </section>
 
-          <section class="step" data-step="3">
+          <section class="step" data-step="3" id="howItWorksStep">
             <div class="step-grid">
               <div class="copy">
                 <h1>Shop Amazon like your normally do</h1>
@@ -157,22 +157,45 @@
 
                   <div class="browser-body amazon-body">
                     <div class="amazon-hero">
-                      <div class="amazon-thumb" aria-hidden="true"></div>
+                      <div class="amazon-thumb" aria-hidden="true">
+                        <img
+                          class="amazon-product-image"
+                          src="../assets/starbucks-coffee-bag.png"
+                          alt="Starbucks coffee"
+                          data-fallback="amazon-thumb"
+                        />
+                        <div class="amazon-thumb-fallback" aria-hidden="true">Starbucks Coffee</div>
+                      </div>
                       <div class="amazon-lines" aria-hidden="true">
+                        <div class="amazon-product-title">Starbucks Coffee Maple Pecan Blend</div>
+                        <div class="amazon-product-price">$14.49</div>
                         <div class="amazon-line w80"></div>
                         <div class="amazon-line w60"></div>
                         <div class="amazon-line w35"></div>
                       </div>
                     </div>
 
-                    <div class="ff-modal">
+                    <div class="scan-indicator" aria-hidden="true">
+                      <span class="scan-dot"></span>
+                      Scanning for alternatives…
+                    </div>
+
+                    <div class="ff-modal" data-demo="modal">
                       <div class="ff-modal-top">
                         <div class="ff-modal-title">Black-Owned Alternative Found!</div>
                         <div class="ff-modal-x">×</div>
                       </div>
 
                       <div class="ff-card">
-                        <div class="ff-thumb" aria-hidden="true"></div>
+                        <div class="ff-thumb" aria-hidden="true">
+                          <img
+                            class="ff-product-image"
+                            src="../assets/coffee-uplifts-people-bag.png"
+                            alt="Coffee Uplifts People"
+                            data-fallback="ff-thumb"
+                          />
+                          <div class="ff-thumb-fallback" aria-hidden="true">Coffee</div>
+                        </div>
                         <div class="ff-info">
                           <div class="ff-name">Coffee Uplifts People Honey Berry Mocha</div>
                           <div class="ff-by">By: Coffee Uplifts People</div>
@@ -185,20 +208,6 @@
                           <div class="ff-cta">Shop This Alternative →</div>
                         </div>
                       </div>
-
-                      <div class="ff-card">
-                        <div class="ff-thumb" aria-hidden="true"></div>
-                        <div class="ff-info">
-                          <div class="ff-name">BLK &amp; Bold Medium Roast Coffee</div>
-                          <div class="ff-by">By: BLK &amp; Bold</div>
-                          <div class="ff-price">$28.99</div>
-                          <div class="ff-meta">
-                            <div class="ff-stars" aria-hidden="true">★★★★★</div>
-                            <div class="ff-reviews">(1,913)</div>
-                          </div>
-                          <div class="ff-cta">Shop This Alternative →</div>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -206,7 +215,7 @@
             </div>
           </section>
 
-          <section class="step" data-step="4">
+          <section class="step" data-step="4" id="trustControlStep">
             <div class="step-grid">
               <div class="copy">
                 <h1>You're always in control</h1>
@@ -231,25 +240,70 @@
                     <div class="browser-bar"></div>
                   </div>
 
-                  <div class="browser-body trust-body">
-                    <div class="trust-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                          d="M12 2 20 6v6c0 5-3.3 9.4-8 10-4.7-.6-8-5-8-10V6l8-4Z"
-                          stroke="currentColor"
-                          stroke-width="1.8"
-                          stroke-linejoin="round"
+                  <div class="browser-body amazon-body trust-amazon-body">
+                    <div class="amazon-hero">
+                      <div class="amazon-thumb" aria-hidden="true">
+                        <img
+                          class="amazon-product-image"
+                          src="../assets/starbucks-coffee-bag.png"
+                          alt="Starbucks coffee"
+                          data-fallback="amazon-thumb"
                         />
-                        <path
-                          d="m8.2 12.2 2.3 2.3 5.3-5.3"
-                          stroke="currentColor"
-                          stroke-width="1.8"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        />
-                      </svg>
+                        <div class="amazon-thumb-fallback" aria-hidden="true">Starbucks Coffee</div>
+                      </div>
+                      <div class="amazon-lines" aria-hidden="true">
+                        <div class="amazon-product-title">Starbucks Coffee Maple Pecan Blend</div>
+                        <div class="amazon-product-price">$14.49</div>
+                        <div class="amazon-line w80"></div>
+                        <div class="amazon-line w60"></div>
+                        <div class="amazon-line w35"></div>
+                      </div>
                     </div>
-                    <div class="trust-caption">Trust + Control</div>
+
+                    <div class="trust-control-row" aria-hidden="true">
+                      <div class="trust-control-text">
+                        <div class="trust-control-title">Show alternatives</div>
+                        <div class="trust-control-sub">Only on product pages</div>
+                      </div>
+                      <div class="trust-nudge" aria-hidden="true">Try the toggle →</div>
+                      <button class="trust-toggle" type="button" data-role="alt-toggle" aria-label="Show alternatives">
+                        <span class="trust-toggle-knob" aria-hidden="true"></span>
+                      </button>
+                    </div>
+
+                    <div class="ff-modal" data-demo="trust-modal">
+                      <div class="ff-modal-top">
+                        <div class="ff-modal-title">Black-Owned Alternative Found!</div>
+                        <div class="ff-modal-x">×</div>
+                      </div>
+
+                      <div class="ff-card">
+                        <div class="ff-thumb" aria-hidden="true">
+                          <img
+                            class="ff-product-image"
+                            src="../assets/coffee-uplifts-people-bag.png"
+                            alt="Coffee Uplifts People"
+                            data-fallback="ff-thumb"
+                          />
+                          <div class="ff-thumb-fallback" aria-hidden="true">Coffee</div>
+                        </div>
+                        <div class="ff-info">
+                          <div class="ff-name">Coffee Uplifts People Honey Berry Mocha</div>
+                          <div class="ff-by">By: Coffee Uplifts People</div>
+                          <div class="ff-price">$15.99</div>
+                          <div class="ff-meta">
+                            <div class="ff-stars" aria-hidden="true">★★★★★</div>
+                            <div class="ff-reviews">(50)</div>
+                          </div>
+                          <div class="ff-chip">Black Owned</div>
+                          <div class="ff-cta">Shop This Alternative →</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="trust-cursor" aria-hidden="true">
+                      <div class="trust-cursor-dot" aria-hidden="true"></div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -318,7 +372,64 @@
                 <a class="skip" href="#" data-action="skip">Skip step</a>
               </div>
               <div class="visual">
-                <div class="media" aria-hidden="true"></div>
+                <div class="finish-visual" aria-hidden="true">
+                  <div class="finish-confetti" data-fx="confetti">
+                    <span class="confetti c1"></span>
+                    <span class="confetti c2"></span>
+                    <span class="confetti c3"></span>
+                    <span class="confetti c4"></span>
+                    <span class="confetti c5"></span>
+                    <span class="confetti c6"></span>
+                    <span class="confetti c7"></span>
+                    <span class="confetti c8"></span>
+                    <span class="confetti c9"></span>
+                    <span class="confetti c10"></span>
+                    <span class="confetti c11"></span>
+                    <span class="confetti c12"></span>
+                    <span class="confetti c13"></span>
+                    <span class="confetti c14"></span>
+                    <span class="confetti c15"></span>
+                    <span class="confetti c16"></span>
+                    <span class="confetti c17"></span>
+                    <span class="confetti c18"></span>
+                  </div>
+
+                  <div class="finish-card">
+                    <div class="finish-badge" data-fx="badge">
+                      <div class="finish-badge-ring" aria-hidden="true"></div>
+                      <div class="finish-badge-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M7 3h10v4a5 5 0 0 1-10 0V3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                          <path d="M7 5H5a2 2 0 0 0-2 2v1a4 4 0 0 0 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                          <path d="M17 5h2a2 2 0 0 1 2 2v1a4 4 0 0 1-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                          <path d="M12 12v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                          <path d="M8 21h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                          <path d="M9 15h6l-1 3H10l-1-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                        </svg>
+                      </div>
+                    </div>
+
+                    <div class="finish-title">Onboarding complete</div>
+                    <div class="finish-subtitle">Next stop: shopping with better choices.</div>
+
+                    <div class="finish-checklist">
+                      <div class="finish-check">
+                        <span class="finish-check-dot" aria-hidden="true"></span>
+                        Ready to scan Amazon automatically
+                      </div>
+                      <div class="finish-check">
+                        <span class="finish-check-dot" aria-hidden="true"></span>
+                        Alternatives show up when they matter
+                      </div>
+                      <div class="finish-check">
+                        <span class="finish-check-dot" aria-hidden="true"></span>
+                        You stay in control
+                      </div>
+                    </div>
+
+                    <div class="finish-hint">Click “Start shopping” to try it now.</div>
+                  </div>
+                </div>
               </div>
             </div>
           </section>

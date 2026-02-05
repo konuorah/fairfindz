@@ -3,12 +3,99 @@
   const progressEl = document.getElementById('progress');
   const openAmazonBtn = document.getElementById('openAmazon');
   const startShoppingBtn = document.getElementById('startShopping');
+  const howItWorksStep = document.getElementById('howItWorksStep');
+  const finishStep = stepsEl ? stepsEl.querySelector('.step[data-step="6"]') : null;
+  const trustStep = stepsEl ? stepsEl.querySelector('.step[data-step="4"]') : null;
+  const trustControlStep = document.getElementById('trustControlStep');
+  const trustToggleBtn = trustControlStep
+    ? trustControlStep.querySelector('[data-role="alt-toggle"]')
+    : null;
+  const wireImageFallbacks = () => {
+    const imgs = Array.from(document.querySelectorAll('img[data-fallback]'));
+    for (const img of imgs) {
+      img.addEventListener('error', () => {
+        const mode = img.getAttribute('data-fallback');
+        if (mode === 'hide') {
+          img.style.display = 'none';
+          return;
+        }
+
+        if (mode === 'amazon-thumb') {
+          img.style.display = 'none';
+          const parent = img.parentElement;
+          if (parent) parent.classList.add('is-fallback');
+        }
+
+        if (mode === 'ff-thumb') {
+          img.style.display = 'none';
+          const parent = img.parentElement;
+          if (parent) parent.classList.add('is-fallback');
+        }
+      });
+    }
+  };
 
   if (!stepsEl || !progressEl) return;
 
   const steps = Array.from(stepsEl.querySelectorAll('.step'));
   const stepperItems = Array.from(progressEl.querySelectorAll('[data-go]'));
   let current = 1;
+
+  let howDemoTimer = null;
+  const clearHowDemoTimer = () => {
+    if (howDemoTimer) {
+      window.clearTimeout(howDemoTimer);
+      howDemoTimer = null;
+    }
+  };
+
+  let trustDemoTimer = null;
+  const clearTrustDemoTimer = () => {
+    if (trustDemoTimer) {
+      window.clearTimeout(trustDemoTimer);
+      trustDemoTimer = null;
+    }
+  };
+
+  const setTrustAltOn = (on) => {
+    if (!trustControlStep) return;
+    trustControlStep.classList.toggle('is-alt-on', Boolean(on));
+    if (trustToggleBtn) {
+      trustToggleBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+  };
+
+  const startTrustControlDemo = () => {
+    if (!trustControlStep) return;
+    clearTrustDemoTimer();
+    trustControlStep.classList.remove('is-nudge');
+    setTrustAltOn(false);
+    trustControlStep.classList.add('is-fx');
+    // Cursor click #1 -> ON, then click #2 -> OFF.
+    trustDemoTimer = window.setTimeout(() => {
+      setTrustAltOn(true);
+      trustDemoTimer = window.setTimeout(() => {
+        setTrustAltOn(false);
+        trustControlStep.classList.remove('is-fx');
+        trustControlStep.classList.add('is-nudge');
+        trustDemoTimer = null;
+      }, 2400);
+    }, 1700);
+  };
+
+  const startHowItWorksDemo = () => {
+    if (!howItWorksStep) return;
+    clearHowDemoTimer();
+    howItWorksStep.classList.remove('is-demo-modal');
+    // Show scanning first, then reveal modal.
+    howDemoTimer = window.setTimeout(() => {
+      howItWorksStep.classList.add('is-demo-modal');
+      // Reset and loop after a short dwell.
+      howDemoTimer = window.setTimeout(() => {
+        startHowItWorksDemo();
+      }, 2600);
+    }, 900);
+  };
 
   const setStep = (n) => {
     const clamped = Math.max(1, Math.min(steps.length, n));
@@ -22,6 +109,37 @@
     for (const item of stepperItems) {
       const idx = Number(item.getAttribute('data-go') || '0');
       item.classList.toggle('is-active', idx === current);
+    }
+
+    if (current === 3) {
+      startHowItWorksDemo();
+    } else {
+      clearHowDemoTimer();
+      if (howItWorksStep) howItWorksStep.classList.remove('is-demo-modal');
+    }
+
+    if (finishStep) {
+      finishStep.classList.remove('is-fx');
+      if (current === 6) {
+        window.requestAnimationFrame(() => {
+          finishStep.classList.add('is-fx');
+        });
+      }
+    }
+
+    if (trustStep) {
+      trustStep.classList.remove('is-fx');
+      clearTrustDemoTimer();
+      if (trustControlStep) {
+        trustControlStep.classList.remove('is-fx');
+        trustControlStep.classList.remove('is-alt-on');
+        trustControlStep.classList.remove('is-nudge');
+      }
+      if (current === 4) {
+        window.requestAnimationFrame(() => {
+          startTrustControlDemo();
+        });
+      }
     }
   };
 
@@ -67,5 +185,16 @@
     });
   }
 
+  if (trustToggleBtn && trustControlStep) {
+    trustToggleBtn.addEventListener('click', () => {
+      clearTrustDemoTimer();
+      trustControlStep.classList.remove('is-fx');
+      trustControlStep.classList.remove('is-nudge');
+      const next = !trustControlStep.classList.contains('is-alt-on');
+      setTrustAltOn(next);
+    });
+  }
+
+  wireImageFallbacks();
   setStep(1);
 })();
