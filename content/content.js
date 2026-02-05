@@ -47,8 +47,9 @@ function isProductPage(urlString = window.location.href, { detectCategory = fals
   // - /gp/product/ASIN
   const dpPattern = /\/dp\/([A-Z0-9]{10})(?:[/?]|$)/i;
   const gpProductPattern = /\/gp\/product\/([A-Z0-9]{10})(?:[/?]|$)/i;
+  const gpAwPattern = /\/gp\/aw\/d\/([A-Z0-9]{10})(?:[/?]|$)/i;
 
-  const isProduct = dpPattern.test(path) || gpProductPattern.test(path);
+  const isProduct = dpPattern.test(path) || gpProductPattern.test(path) || gpAwPattern.test(path);
 
   // Optional: when you're on a product page, also detect category from page text.
   // Keeping this optional lets you reuse isProductPage() purely as a URL check.
@@ -125,6 +126,7 @@ function isValidAmazonProductUrl(urlString) {
     if (!/(^|\.)amazon\.com$/i.test(url.hostname)) return false;
     return /^\/dp\/[A-Z0-9]{10}(?:[/?]|$)/i.test(url.pathname) ||
       /^\/gp\/product\/[A-Z0-9]{10}(?:[/?]|$)/i.test(url.pathname) ||
+      /^\/gp\/aw\/d\/[A-Z0-9]{10}(?:[/?]|$)/i.test(url.pathname) ||
       /\/dp\/[A-Z0-9]{10}(?:[/?]|$)/i.test(url.pathname);
   } catch {
     return false;
