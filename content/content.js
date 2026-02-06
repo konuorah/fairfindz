@@ -649,6 +649,9 @@ function detectDomainsFromText(text) {
   if (hasAny(["coffee", "espresso", "beans", "roast", "k-cup", "keurig"])) {
     domains.add("coffee");
   }
+  if (hasAny(["olive oil", "extra virgin", "evoo", "cold pressed", "cold-pressed", "avocado oil", "cooking oil", "sunflower oil", "grapeseed oil", "sesame oil"])) {
+    domains.add("grocery");
+  }
   if (hasAny(["toothpaste", "tooth paste", "mouthwash", "oral care", "toothbrush", "teeth", "gum", "gingivitis"])) {
     domains.add("oralcare");
   }
@@ -677,7 +680,10 @@ function getProductDomains(product) {
 function matchProducts(amazonInfo, products, { limit = 3 } = {}) {
   const inStock = (products || []).filter((p) => p.availability !== "out_of_stock");
 
-  const pageDomainText = `${amazonInfo?.title || ""} ${amazonInfo?.breadcrumbs || ""} ${amazonInfo?.features || ""} ${amazonInfo?.description || ""} ${amazonInfo?.combinedText || ""}`;
+  // Domain detection must be conservative.
+  // Using full page text can pick up unrelated words from recommendations/ads (e.g., "coffee")
+  // and cause irrelevant alternatives to show.
+  const pageDomainText = `${amazonInfo?.title || ""} ${amazonInfo?.breadcrumbs || ""}`;
   const pageDomains = detectDomainsFromText(pageDomainText);
 
   const currentBrandText = normalizeText(amazonInfo?.title || "");
