@@ -282,8 +282,12 @@ async function getSupabasePublicConfig() {
   return new Promise((resolve) => {
     try {
       chrome.storage.local.get(["ff_supabase_url", "ff_supabase_anon_key"], (items) => {
-        const url = String(items?.ff_supabase_url || "").trim();
-        const anonKey = String(items?.ff_supabase_anon_key || "").trim();
+        // Use default Supabase config if user hasn't configured their own
+        const defaultUrl = "https://mlxcrnhlgdwphfxkakok.supabase.co";
+        const defaultAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1seGNybmhsZ2R3cGhmeGtha29rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTU5ODAsImV4cCI6MjA4NDMzMTk4MH0.fjfcaHicmtYWxNkQti736Uewndv9zuQa_9d6DCVIgE8";
+        
+        const url = String(items?.ff_supabase_url || defaultUrl).trim();
+        const anonKey = String(items?.ff_supabase_anon_key || defaultAnonKey).trim();
         resolve({ url, anonKey });
       });
     } catch {
@@ -301,6 +305,8 @@ function formatUsdPrice(value) {
 
 async function loadSupabaseProducts() {
   const { url, anonKey } = await getSupabasePublicConfig();
+  console.log('Supabase config:', { url, anonKey }); // Show full key for debugging
+  
   if (!url || !anonKey) {
     throw new Error("Supabase public config missing (ff_supabase_url / ff_supabase_anon_key)");
   }
@@ -328,6 +334,8 @@ async function loadSupabaseProducts() {
     is_active: "eq.true"
   });
 
+  console.log('Fetching from:', `${endpoint}?${qs.toString()}`);
+
   const res = await fetch(`${endpoint}?${qs.toString()}`, {
     method: "GET",
     headers: {
@@ -336,6 +344,9 @@ async function loadSupabaseProducts() {
       Accept: "application/json"
     }
   });
+
+  console.log('Response status:', res.status);
+  console.log('Response headers:', Object.fromEntries(res.headers.entries()));
 
   if (!res.ok) {
     throw new Error(`Supabase products fetch failed: ${res.status} ${res.statusText}`);
