@@ -6,20 +6,6 @@ if (!chromeApi) {
 
 const actionApi = chromeApi && (chromeApi.action || chromeApi.browserAction);
 
-if (chromeApi && chromeApi.runtime && chromeApi.runtime.onInstalled && chromeApi.runtime.onInstalled.addListener) {
-  chromeApi.runtime.onInstalled.addListener((details) => {
-    try {
-      if (!details || details.reason !== "install") return;
-      const url = chromeApi.runtime.getURL("onboarding/welcome.html");
-      if (chromeApi.tabs && chromeApi.tabs.create) {
-        chromeApi.tabs.create({ url });
-      }
-    } catch {
-      // Ignore onboarding failures.
-    }
-  });
-}
-
 function isMissingReceiverError(err) {
   const msg = String(err?.message || err || "").toLowerCase();
   return (
