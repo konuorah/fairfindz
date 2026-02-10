@@ -1665,3 +1665,186 @@ section[data-step="6"].is-fx .confetti.c18 { animation-delay: 170ms; }
     width: 100%;
   }
 }
+
+/* Pin reminder styles */
+.pin-reminder {
+  background: rgba(255, 106, 0, 0.1);
+  border: 1px solid rgba(255, 106, 0, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+}
+
+.pin-hint {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.pin-button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pin-button:hover {
+  background: #e55a00;
+  transform: translateY(-1px);
+}
+
+.pin-divider {
+  margin: 0 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.pin-manual {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Pin Extension Step Styles */
+.pin-instruction {
+  background: rgba(255, 106, 0, 0.1);
+  border: 1px solid rgba(255, 106, 0, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.pin-instruction p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.toolbar-puzzle {
+  font-size: 20px;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.toolbar-puzzle.highlight {
+  background: rgba(255, 106, 0, 0.2);
+  animation: puzzlePulse 2s ease-in-out infinite;
+}
+
+.toolbar-extensions {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+.toolbar-extensions.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ext-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.ext-item.highlighted {
+  background: rgba(255, 106, 0, 0.1);
+  border: 1px solid rgba(255, 106, 0, 0.3);
+}
+
+.ext-icon {
+  font-size: 16px;
+}
+
+.ext-name {
+  font-size: 14px;
+  font-weight: 500;
+  flex: 1;
+}
+
+.ext-pin {
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.ext-pin:hover {
+  transform: scale(1.2);
+}
+
+.ext-pin.pulse {
+  animation: pinPulse 1.5s ease-in-out infinite;
+}
+
+.pin-demo-arrow {
+  font-size: 24px;
+  color: var(--accent);
+  text-align: center;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.pin-demo-text {
+  text-align: center;
+  margin-top: 8px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.button.secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.button.secondary:hover {
+  background: var(--border);
+}
+
+@keyframes puzzlePulse {
+  0%, 100% {
+    transform: scale(1);
+    background: rgba(255, 106, 0, 0.2);
+  }
+  50% {
+    transform: scale(1.1);
+    background: rgba(255, 106, 0, 0.3);
+  }
+}
+
+@keyframes pinPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}

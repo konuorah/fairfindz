@@ -232,7 +232,7 @@
       clearMessages();
 
       if (titleEl) {
-        titleEl.textContent = mode === "login" ? "Welcome back! 🎯" : "Welcome to FairFindz! 🎯";
+        titleEl.textContent = mode === "login" ? "Welcome back!" : "Welcome to FairFindz!";
       }
 
       if (passwordInput) {

@@ -958,7 +958,7 @@ function createToast({ onOpenFullModal } = {}) {
   toast.innerHTML = `
     <div class="bbd-toast-header">
       <div class="bbd-toast-header-left">
-        <div class="bbd-toast-icon" aria-hidden="true">🎯</div>
+        <img src="${chrome.runtime.getURL('icons/icon32.png')}" alt="Fair Findz" class="bbd-toast-icon" aria-hidden="true">
         <div class="bbd-toast-title">FairFindz</div>
       </div>
       <button class="bbd-toast-close" type="button" aria-label="Close">&times;</button>
@@ -1164,7 +1164,7 @@ function createModal({ amazonInfo, matches } = {}) {
     container.innerHTML = `
     <div class="bbd-modal-header">
       <div class="bbd-modal-header-left">
-        <div class="bbd-modal-icon" aria-hidden="true">🎯</div>
+        <img src="${chrome.runtime.getURL('icons/icon32.png')}" alt="Fair Findz" class="bbd-modal-icon" aria-hidden="true">
         <div class="bbd-modal-headline">${items.length ? "Black-Owned Alternative Found!" : "No Alternative Found"}</div>
       </div>
 
@@ -1220,6 +1220,9 @@ function createModal({ amazonInfo, matches } = {}) {
 
     const closeBtn = overlay.querySelector(".bbd-modal-close");
     closeBtn?.addEventListener("click", closeModal);
+
+    const footerCloseBtn = overlay.querySelector(".bbd-modal-footer-close");
+    footerCloseBtn?.addEventListener("click", closeModal);
 
     const productCtaButtons = overlay.querySelectorAll(".bbd-product-cta-button");
     productCtaButtons.forEach((btn) => {

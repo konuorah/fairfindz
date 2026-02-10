@@ -10,6 +10,20 @@
   const trustToggleBtn = trustControlStep
     ? trustControlStep.querySelector('[data-role="alt-toggle"]')
     : null;
+
+  // Check if extension was successfully pinned
+  const checkPinStatus = async () => {
+    try {
+      const result = await chrome.storage.local.get(['hasAttemptedPin', 'pinError']);
+      return {
+        attempted: result.hasAttemptedPin,
+        error: result.pinError
+      };
+    } catch {
+      return { attempted: null, error: null };
+    }
+  };
+
   const wireImageFallbacks = () => {
     const imgs = Array.from(document.querySelectorAll('img[data-fallback]'));
     for (const img of imgs) {
@@ -196,5 +210,15 @@
   }
 
   wireImageFallbacks();
+  
+  // Check pin status and show appropriate message
+  checkPinStatus().then(pinStatus => {
+    if (pinStatus.attempted === true) {
+      console.log('Extension successfully pinned to toolbar');
+    } else if (pinStatus.attempted === false) {
+      console.log('Extension could not be auto-pinned:', pinStatus.error);
+    }
+  });
+  
   setStep(1);
 })();

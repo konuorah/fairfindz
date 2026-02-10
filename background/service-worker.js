@@ -4,6 +4,37 @@ if (!chromeApi) {
   // If the extension APIs are unavailable for any reason, do nothing.
 } 
 
+// Auto-pin extension on first install
+chromeApi?.runtime?.onInstalled.addListener(async (details) => {
+  if (details.reason === 'install') {
+    try {
+      console.log('Fair Findz installed - opening onboarding');
+      
+      // Open onboarding page directly (like Capital One Shopping)
+      await chromeApi.tabs.create({
+        url: chromeApi.runtime.getURL('onboarding/welcome.html'),
+        active: true
+      });
+      
+      console.log('Onboarding page opened');
+      
+      // Store install info
+      await chromeApi.storage.local.set({ 
+        isFirstInstall: true,
+        installDate: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Could not open onboarding:', error);
+      // Store that we attempted but failed
+      await chromeApi.storage.local.set({ 
+        isFirstInstall: false,
+        installError: error.message,
+        installDate: new Date().toISOString()
+      });
+    }
+  }
+});
+
 const actionApi = chromeApi && (chromeApi.action || chromeApi.browserAction);
 
 function isMissingReceiverError(err) {

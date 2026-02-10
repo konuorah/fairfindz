@@ -71,11 +71,8 @@
 .bbd-modal-icon {
   width: 32px;
   height: 32px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(249, 115, 22, 0.12);
+  border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .bbd-modal-headline {
@@ -329,11 +326,12 @@
    width: min(340px, calc(100vw - 32px));
    border-radius: 14px;
    background: #ffffff;
-   border: 1px solid rgba(17, 17, 17, 0.12);
+   border: 2px solid #ff6b35;
    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
    color: #111111;
    overflow: hidden;
+   animation: toastPulse 2s ease-in-out;
  }
 
  .bbd-toast-header {
@@ -350,14 +348,11 @@
  }
 
  .bbd-toast-icon {
-   width: 28px;
-   height: 28px;
-   border-radius: 10px;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   background: rgba(249, 115, 22, 0.12);
- }
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
 
  .bbd-toast-title {
    font-size: 14px;
@@ -394,6 +389,7 @@
    font-size: 14px;
    font-weight: 700;
    cursor: pointer;
+   animation: buttonPulse 1.5s ease-in-out infinite;
  }
 
  .bbd-toast-countdown {
@@ -402,6 +398,42 @@
    font-size: 12px;
    color: #111111;
    font-weight: 600;
+   position: relative;
+   display: inline-block;
+   padding: 4px 8px;
+   background: rgba(255, 107, 53, 0.1);
+   border-radius: 12px;
+   border: 1px solid rgba(255, 107, 53, 0.3);
+ }
+
+@keyframes toastPulse {
+   0% {
+     border-color: #ff6b35;
+     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22), 0 0 0 0 rgba(255, 107, 53, 0.4);
+   }
+   50% {
+     border-color: #ff8c5a;
+     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22), 0 0 0 8px rgba(255, 107, 53, 0);
+   }
+   100% {
+     border-color: #ff6b35;
+     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22), 0 0 0 0 rgba(255, 107, 53, 0);
+   }
+ }
+
+@keyframes buttonPulse {
+   0% {
+     transform: scale(1);
+     box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+   }
+   50% {
+     transform: scale(1.02);
+     box-shadow: 0 6px 16px rgba(255, 107, 53, 0.4);
+   }
+   100% {
+     transform: scale(1);
+     box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+   }
  }
 
 @media (max-width: 420px) {
