@@ -655,7 +655,7 @@ function detectDomainsFromText(text) {
   if (hasAny(["toothpaste", "tooth paste", "mouthwash", "oral care", "toothbrush", "teeth", "gum", "gingivitis"])) {
     domains.add("oralcare");
   }
-  if (hasAny(["laundry", "detergent", "dish soap", "cleaner", "cleaning", "soap"])) {
+  if (hasAny(["laundry", "detergent", "dish soap", "cleaner", "cleaning", "dishwasher", "all-purpose", "disinfectant", "bleach"])) {
     domains.add("household");
   }
   if (hasAny(["skincare", "moisturizer", "serum", "cleanser", "sunscreen", "lotion", "brightening"])) {
@@ -671,6 +671,10 @@ function detectDomainsFromText(text) {
 
   if (hasAny(["candle", "candles", "wax", "scented", "aroma", "fragrance", "pillar", "votive", "tin", "jar candle"])) {
     domains.add("candle");
+  }
+
+  if (hasAny(["deodorant", "antiperspirant", "deodorant stick", "roll-on", "body spray", "underarm", "antiperspirant stick", "clinical strength"])) {
+    domains.add("personalcare");
   }
 
   return domains;
