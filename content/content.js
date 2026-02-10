@@ -1288,7 +1288,6 @@ async function logProductPageStatus() {
 
       // UX: show a small toast 2 seconds after load if we found alternatives.
       // The toast auto-dismisses after 5 seconds and then the toolbar icon flashes.
-      maybePromptAuthOnceOnProductPage();
       window.setTimeout(() => {
         if (!isProductPage()) return;
         // Avoid showing stale toasts when Amazon navigates without a full reload.
@@ -1380,21 +1379,10 @@ chrome.runtime?.onMessage?.addListener((message) => {
 
   // Auth gate: if the user is not signed in and has not chosen guest mode,
   // show the signup modal first.
-  const authApi = globalThis.FairFindzAuth;
   if (forceOpen) {
     openAlternativesModal();
     return;
   }
-  if (authApi && typeof authApi.ensureAuthOrGuest === "function") {
-    authApi.ensureAuthOrGuest({
-      forcePrompt: true,
-      onAuthed: () => openAlternativesModal(),
-      onGuest: () => openAlternativesModal()
-    });
-    return;
-  }
-
-  // If auth modal isn't available for some reason, fall back to current behavior.
   openAlternativesModal();
 });
 
@@ -1402,26 +1390,7 @@ chrome.runtime?.onMessage?.addListener((message) => {
 // We keep this lightweight: only show if the user is neither authenticated nor in guest mode
 // AND if we found alternatives.
 async function maybePromptAuthOnceOnProductPage() {
-  const authApi = globalThis.FairFindzAuth;
-  if (!authApi || typeof authApi.ensureAuthOrGuest !== "function" || typeof authApi.getAuthState !== "function") {
-    return;
-  }
-  if (!isProductPage()) return;
-
-  try {
-    const state = await authApi.getAuthState();
-    if (state.isAuthenticated || state.guest) return;
-  } catch {
-    return;
-  }
-
-  // Only prompt if there are alternatives available.
-  if (!Array.isArray(cachedMatches) || cachedMatches.length === 0) return;
-
-  // Do not force; only show once per user/device.
-  authApi.ensureAuthOrGuest({
-    forcePrompt: false
-  });
+  return;
 }
 
 // Run once when the page loads.
