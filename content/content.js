@@ -669,6 +669,10 @@ function detectDomainsFromText(text) {
     domains.add("appliances");
   }
 
+  if (hasAny(["candle", "candles", "wax", "scented", "aroma", "fragrance", "pillar", "votive", "tin", "jar candle"])) {
+    domains.add("candle");
+  }
+
   return domains;
 }
 
