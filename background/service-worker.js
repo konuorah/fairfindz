@@ -6,20 +6,6 @@ if (!chromeApi) {
 
 const actionApi = chromeApi && (chromeApi.action || chromeApi.browserAction);
 
-if (chromeApi && chromeApi.runtime && chromeApi.runtime.onInstalled && chromeApi.runtime.onInstalled.addListener) {
-  chromeApi.runtime.onInstalled.addListener((details) => {
-    try {
-      if (!details || details.reason !== "install") return;
-      const url = chromeApi.runtime.getURL("onboarding/welcome.html");
-      if (chromeApi.tabs && chromeApi.tabs.create) {
-        chromeApi.tabs.create({ url });
-      }
-    } catch {
-      // Ignore onboarding failures.
-    }
-  });
-}
-
 function isMissingReceiverError(err) {
   const msg = String(err?.message || err || "").toLowerCase();
   return (
@@ -67,7 +53,7 @@ async function ensureContentScriptsInjected(tabId) {
 
   if (typeof scripting.insertCSS === "function") {
     try {
-      const p = scripting.insertCSS({ target: { tabId }, files: ["content/content.css", "content/auth-modal.css"] });
+      const p = scripting.insertCSS({ target: { tabId }, files: ["content/content.css"] });
       if (p && typeof p.catch === "function") await p;
     } catch {
     }
@@ -78,7 +64,7 @@ async function ensureContentScriptsInjected(tabId) {
       const p = scripting.executeScript({
         target: { tabId },
         world: "ISOLATED",
-        files: ["content/auth-modal.js", "content/content.js"]
+        files: ["content/content.js"]
       });
       if (p && typeof p.catch === "function") await p;
     } catch {
