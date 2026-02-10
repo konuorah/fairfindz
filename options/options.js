@@ -92,7 +92,7 @@
     }
 
     try {
-      const endpoint = `${url}/rest/v1/products`;
+      const endpoint = `${url}/rest/v1/products2`;
       const qs = new URLSearchParams({ select: "id", is_active: "eq.true", limit: "1" });
 
       const res = await fetch(`${endpoint}?${qs.toString()}`, {

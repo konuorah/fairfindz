@@ -308,7 +308,7 @@ async function loadSupabaseProducts() {
   const baseUrl = url.replace(/\/$/, "");
 
   // Use the Supabase PostgREST endpoint directly from the content script.
-  const endpoint = `${baseUrl}/rest/v1/products`;
+  const endpoint = `${baseUrl}/rest/v1/products2`;
   const qs = new URLSearchParams({
     select: [
       "id",
