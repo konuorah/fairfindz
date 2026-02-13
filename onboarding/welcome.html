@@ -361,7 +361,130 @@
             </div>
           </section>
 
-          <section class="step" data-step="6">
+          <section class="step" data-step="6" id="pinStep">
+            <div class="step-grid">
+              <div class="copy">
+                <h1>Pin FairFindz to your toolbar</h1>
+                <p class="lead">
+                  Keep FairFindz one click away while you shop. Pin it to your Chrome toolbar so you never miss an alternative.
+                </p>
+                <div class="actions">
+                  <button class="button" data-action="continue">Continue</button>
+                </div>
+                <a class="skip" href="#" data-action="skip">Skip step</a>
+              </div>
+              <div class="visual">
+                <div class="browser-frame" aria-hidden="true">
+                  <div class="browser-top">
+                    <div class="browser-controls">
+                      <span class="browser-dot"></span>
+                      <span class="browser-dot"></span>
+                      <span class="browser-dot"></span>
+                    </div>
+                    <div class="browser-bar"></div>
+                  </div>
+
+                  <div class="browser-body pin-demo-body">
+                    <!-- Chrome toolbar area -->
+                    <div class="pin-demo-toolbar">
+                      <div class="pin-demo-toolbar-icons">
+                        <div class="pin-demo-icon-placeholder"></div>
+                        <div class="pin-demo-icon-placeholder"></div>
+                        <div class="pin-demo-puzzle" id="pinDemoPuzzle">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.968-.925a2.501 2.501 0 1 0-3.214 3.214c.446.166.855.497.925.968a.98.98 0 0 1-.276.837l-1.61 1.61a2.404 2.404 0 0 1-1.705.707 2.402 2.402 0 0 1-1.704-.706l-1.568-1.568a1.026 1.026 0 0 0-.877-.29c-.493.074-.84.504-1.02.968a2.5 2.5 0 1 1-3.237-3.237c.464-.18.894-.527.967-1.02a1.026 1.026 0 0 0-.289-.877l-1.568-1.568A2.402 2.402 0 0 1 1.998 12c0-.617.236-1.234.706-1.704L4.315 8.685a.98.98 0 0 1 .837-.276c.47.07.802.48.968.925a2.501 2.501 0 1 0 3.214-3.214c-.446-.166-.855-.497-.925-.968a.979.979 0 0 1 .276-.837l1.611-1.611a2.404 2.404 0 0 1 1.704-.706c.617 0 1.234.236 1.704.706l1.568 1.568c.23.23.556.338.877.29.493-.074.84-.504 1.02-.968a2.5 2.5 0 1 1 3.237 3.237c-.464.18-.894.527-.967 1.02Z"/>
+                          </svg>
+                        </div>
+                      </div>
+                      <!-- Cursor pointer for animation -->
+                      <div class="pin-demo-cursor" id="pinDemoCursor">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#111827">
+                          <path d="M5.65 3.15a.5.5 0 0 0-.8.54l3.56 14.27a.5.5 0 0 0 .92.1l2.68-4.47 5.3 5.3a.5.5 0 0 0 .71 0l1.41-1.41a.5.5 0 0 0 0-.71l-5.3-5.3 4.47-2.68a.5.5 0 0 0-.1-.92L5.65 3.15Z"/>
+                        </svg>
+                      </div>
+                    </div>
+
+                    <!-- Extensions dropdown -->
+                    <div class="pin-demo-dropdown" id="pinDemoDropdown">
+                      <div class="pin-demo-dropdown-header">Extensions</div>
+                      <div class="pin-demo-ext-row" id="pinDemoFairFindz">
+                        <div class="pin-demo-ext-icon">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff6a00" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>
+                        </div>
+                        <span class="pin-demo-ext-name">FairFindz</span>
+                        <div class="pin-demo-pin-btn" id="pinDemoPinBtn">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="17" x2="12" y2="22"/>
+                            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
+                          </svg>
+                        </div>
+                      </div>
+                      <div class="pin-demo-ext-row pin-demo-ext-other">
+                        <div class="pin-demo-ext-icon">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/></svg>
+                        </div>
+                        <span class="pin-demo-ext-name">Other Extension</span>
+                        <div class="pin-demo-pin-btn pin-demo-pin-inactive">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="17" x2="12" y2="22"/>
+                            <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Pinned result in toolbar -->
+                    <div class="pin-demo-pinned" id="pinDemoPinned">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff6a00" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>
+                      <span>FairFindz</span>
+                    </div>
+
+                    <!-- Simulated Amazon page content -->
+                    <div class="pin-demo-page">
+                      <div class="pin-demo-search-bar">
+                        <div class="pin-demo-search-input"></div>
+                        <div class="pin-demo-search-btn"></div>
+                      </div>
+                      <div class="pin-demo-products">
+                        <div class="pin-demo-product">
+                          <div class="pin-demo-product-img"></div>
+                          <div class="pin-demo-product-lines">
+                            <div class="pin-demo-line w80"></div>
+                            <div class="pin-demo-line w50 accent"></div>
+                            <div class="pin-demo-stars">★★★★☆</div>
+                            <div class="pin-demo-line w30 bold"></div>
+                          </div>
+                        </div>
+                        <div class="pin-demo-product">
+                          <div class="pin-demo-product-img"></div>
+                          <div class="pin-demo-product-lines">
+                            <div class="pin-demo-line w70"></div>
+                            <div class="pin-demo-line w40 accent"></div>
+                            <div class="pin-demo-stars">★★★★★</div>
+                            <div class="pin-demo-line w30 bold"></div>
+                          </div>
+                        </div>
+                        <div class="pin-demo-product">
+                          <div class="pin-demo-product-img"></div>
+                          <div class="pin-demo-product-lines">
+                            <div class="pin-demo-line w60"></div>
+                            <div class="pin-demo-line w45 accent"></div>
+                            <div class="pin-demo-stars">★★★★☆</div>
+                            <div class="pin-demo-line w30 bold"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Step labels -->
+                    <div class="pin-demo-label" id="pinDemoLabel"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="step" data-step="7">
             <div class="step-grid">
               <div class="copy">
                 <h1>You’re all set.</h1>
@@ -442,7 +565,8 @@
             <button class="stepper-item" data-go="3" aria-label="How It Works">How It Works</button>
             <button class="stepper-item" data-go="4" aria-label="Trust + Control">Trust + Control</button>
             <button class="stepper-item" data-go="5" aria-label="Vote With Your Dollars">Vote With Your Dollars</button>
-            <button class="stepper-item" data-go="6" aria-label="Shop">Shop</button>
+            <button class="stepper-item" data-go="6" aria-label="Pin FairFindz">Pin FairFindz</button>
+            <button class="stepper-item" data-go="7" aria-label="Shop">Shop</button>
           </nav>
         </footer>
       </main>

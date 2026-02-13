@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Fair Findz",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Discover minority-owned alternatives while shopping on Amazon",
   "icons": {
     "16": "icons/icon16.png",
@@ -9,7 +9,7 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": ["storage", "activeTab", "tabs", "scripting", "notifications"],
+  "permissions": ["storage", "activeTab", "tabs", "scripting"],
   "host_permissions": [
     "*://*.amazon.com/*",
     "https://*.supabase.co/*"
